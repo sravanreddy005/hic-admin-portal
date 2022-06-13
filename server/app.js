@@ -7,17 +7,6 @@ const helmet = require('helmet');
 
 const app = express();
 
-app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With,content-type, Authorization');
-    res.setHeader('Content-Security-Policy', "default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline'; font-src: * 'unsafe-inline';");
-    if (req.secure) {
-        res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-    }
-    next();
-});
-
 require('./config/config');
 require('./database');
 
@@ -40,6 +29,17 @@ app.use(express.json());
 app.use(cors());
 app.use(xss()); // Data Sanitization against XSS
 app.use(helmet());
+
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With,content-type, Authorization');
+    res.setHeader('Content-Security-Policy', "default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline'; font-src: * 'unsafe-inline';");
+    if (req.secure) {
+        res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+    }
+    next();
+});
 
 app.use(express.static(path.join(__dirname, 'dist')));
 
