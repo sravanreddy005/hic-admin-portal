@@ -31,15 +31,10 @@ app.use(cors());
 app.use(xss()); // Data Sanitization against XSS
 app.use(helmet());
 
-app.use(express.static(path.join(__dirname, 'dist')));
-
 app.use('/api/auth', authRoutes);
 app.use('/api', adminRoutes);
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist/index.html'));
-});
-
+// app.use(express.static(path.join(__dirname, 'dist/iw')));
+// app.use('/', express.static(path.join(__dirname, 'dist/iw')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 winston.stream = {

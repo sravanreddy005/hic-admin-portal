@@ -39779,5 +39779,10 @@ h6 {
 .shipments label {
   font-weight: bold !important;
 }
+.btn-xs {
+  padding: 0.25rem 0.4rem !important;
+  font-size: 0.775rem !important;
+  line-height: 0.5 !important;
+}
 
 /*# sourceMappingURL=styles.css.map*/

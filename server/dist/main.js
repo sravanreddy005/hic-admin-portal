@@ -171,16 +171,16 @@ class HeaderComponent {
     }
 }
 HeaderComponent.ɵfac = function HeaderComponent_Factory(t) { return new (t || HeaderComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵdirectiveInject"](_nebular_theme__WEBPACK_IMPORTED_MODULE_5__.NbSidebarService), _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵdirectiveInject"](_nebular_theme__WEBPACK_IMPORTED_MODULE_5__.NbMenuService), _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵdirectiveInject"](_nebular_theme__WEBPACK_IMPORTED_MODULE_5__.NbThemeService), _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵdirectiveInject"](_services_authentication_authenticate_service__WEBPACK_IMPORTED_MODULE_1__.AuthenticateService)); };
-HeaderComponent.ɵcmp = /*@__PURE__*/ _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵdefineComponent"]({ type: HeaderComponent, selectors: [["ngx-header"]], decls: 10, vars: 3, consts: [[1, "header-container"], [1, "logo-container"], ["href", "#", 1, "sidebar-toggle", 3, "click"], ["icon", "menu-2-outline"], [1, "logo"], ["size", "small"], [1, "user-action"], [3, "nbContextMenu", "name", "picture"]], template: function HeaderComponent_Template(rf, ctx) { if (rf & 1) {
+HeaderComponent.ɵcmp = /*@__PURE__*/ _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵdefineComponent"]({ type: HeaderComponent, selectors: [["ngx-header"]], decls: 10, vars: 3, consts: [[1, "header-container"], [1, "logo-container"], ["href", "#", 1, "sidebar-toggle", 3, "click"], ["icon", "menu-2-outline"], [1, "logo"], ["src", "../../../../assets/images/hic-logo.png", "height", "50px", "width", "200px"], ["size", "small"], [1, "user-action"], [3, "nbContextMenu", "name", "picture"]], template: function HeaderComponent_Template(rf, ctx) { if (rf & 1) {
         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵelementStart"](0, "div", 0)(1, "div", 1)(2, "a", 2);
         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵlistener"]("click", function HeaderComponent_Template_a_click_2_listener() { return ctx.toggleSidebar(); });
         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵelement"](3, "nb-icon", 3);
         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵelementEnd"]();
         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵelementStart"](4, "a", 4);
-        _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵtext"](5, "HIC");
+        _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵelement"](5, "img", 5);
         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵelementEnd"]()()();
-        _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵelementStart"](6, "div", 0)(7, "nb-actions", 5)(8, "nb-action", 6);
-        _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵelement"](9, "nb-user", 7);
+        _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵelementStart"](6, "div", 0)(7, "nb-actions", 6)(8, "nb-action", 7);
+        _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵelement"](9, "nb-user", 8);
         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵelementEnd"]()()();
     } if (rf & 2) {
         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵadvance"](9);
@@ -1022,8 +1022,8 @@ const changeConfirmAlert = (message) => {
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, change!',
-            cancelButtonText: 'No, cancel!',
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No',
         }).then((result) => {
             if (result.value) {
                 resolve(true);
@@ -1362,6 +1362,7 @@ const environment = {
     SERVER_URL: "http://65.0.205.215:3000/",
     API_URL: "http://65.0.205.215:3000/api",
     ENCRPTION_KEY: "19a07b650f031edcd09fb5a1ca6Iw$rvn",
+    COUNTRIES_WITHOUT_POSTAL_CODE: "AO,AG,AW,BS,BZ,BJ,BW,BO,BQ,BF,BI,CM,CF,KM,CG,CD,CK,CW,DJ,DM,GQ,ER,FJ,TF,GM,GH,GD,GY,HK,KI,LY,MO,MW,ML,MR,NR,NU,KP,QA,RW,KN,ST,SC,SL,SB,SR,SY,TL,TG,TK,TO,TV,UG,AE,VU,YE,ZW"
 };
 
 
