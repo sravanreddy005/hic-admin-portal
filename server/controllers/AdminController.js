@@ -1771,6 +1771,11 @@ module.exports.generateInvoicePDF = async (req, res, next) => {
             format: 'A4',
             orientation: "portrait",
             border: "0",
+            childProcessOptions: {
+                env: {
+                  OPENSSL_CONF: '/dev/null',
+                },
+            }
         };
 
         // Generate PDF and promisify the toFile function
