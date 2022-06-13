@@ -114,7 +114,7 @@ ShipmentModels.Shipments = sequelize.define('shipments', {
   },
   transaction_id: {
     type: Sequelize.STRING,
-    allowNull: false
+    allowNull: true
   },
   sender_name: {
     type: Sequelize.STRING,

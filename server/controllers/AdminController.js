@@ -1,13 +1,25 @@
 const Sequelize = require('sequelize');
+const winston = require('../helpers/winston');
 const { AdminModels } = require('../database');
 const { validateUserLogin, getAccessAndRefreshTokens } = require('./AuthController');
 const { getShipmentData } = require('./ShipmentsController');
 const { validateData, generatePasswordHashSalt, generateHashSaltUsingString, stringToSlug, genarateAccessToken } = require('../helpers/common');
-const { sendMail } = require('../helpers/email');
+// const { sendMail } = require('../helpers/email');
+const { sendWhatsappMessage, amountInwords, formatDate, getSumByKey } = require('../helpers/common');
 const { passwordRegx, alnumRegx } = require('../helpers/regExp');
 const csv = require('csv-parser');
 const fs = require('fs');
 const Op = Sequelize.Op;
+
+const pdf = require('html-pdf');
+const {promisify} = require('util');
+const read = promisify(require('fs').readFile);
+const handlebars = require('handlebars');
+
+handlebars.registerHelper("inc", function(value, options)
+{
+    return parseInt(value) + 1;
+});
 
 const {  
     addRecordToDB,
@@ -31,7 +43,7 @@ module.exports.checkAdminAccess = async (roleID, moduleVal, type) => {
     try {
         const rolesResp = await getOneRecordFromDB('Roles', {id: roleID});
         if(rolesResp && rolesResp.access_modules){
-            let accessModules = JSON.parse(rolesResp.access_modules);
+            let accessModules = Array.isArray(rolesResp.access_modules) ? rolesResp.access_modules : JSON.parse(rolesResp.access_modules);
             let moduleData = accessModules.filter(module =>{
                 if (type === 'edit') {
                     return (module.module_val === moduleVal && module.edit === true);
@@ -169,6 +181,7 @@ module.exports.getRoles = async (req, res, next) => {
         const rolesResp = await getRecordsFromDB('Roles');
         res.status(200).json({responseCode: 1,message: "success",roles: rolesResp});        
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in getRoles method': err.message });
         return next(err);
     }
 }
@@ -202,6 +215,7 @@ module.exports.updateRole = async (req, res, next) => {
             }
         }        
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in updateRole method': err.message });
         return next(err);
     }
 }
@@ -278,13 +292,41 @@ module.exports.createAdmin = async (req, res, next) => {
             }
             const resp = await addRecordToDB(data, 'Admin');
             if(resp){
-                const replaceData = {
-                    first_name: req.body.first_name,
-                    username : email,
-                    password : passwordObj.password,
-                    login_url : process.env.APP_URL + '/auth/login'
-                }
-                const sendMailResp = await sendMail(email, replaceData, 'sendUserNamePassword');
+                // const replaceData = {
+                //     first_name: req.body.first_name,
+                //     username : email,
+                //     password : passwordObj.password,
+                //     login_url : process.env.APP_URL + '/auth/login'
+                // }
+                // const sendMailResp = await sendMail(email, replaceData, 'sendUserNamePassword');
+
+                let template = {
+                    name: 'account_credentials',
+                    components: [{
+                        type: 'body',
+                        parameters: [
+                            {
+                                "type": "text",
+                                "text": req.body.first_name
+                            },
+                            {
+                                "type": "text",
+                                "text": email
+                            },
+                            {
+                                "type": "text",
+                                "text": passwordObj.password
+                            },
+                            {
+                                "type": "text",
+                                "text": process.env.APP_URL + '/auth/login'
+                            }
+                        ]
+                    }],
+                    language: {code: 'en_US'}
+                };
+                let message = await sendWhatsappMessage(`91${reqData.mobile_number}`, template);
+
                 res.status(200).json({responseCode: 1, message: "User created successfully"});   
             }else{
                 res.status(200).json({responseCode: 0, message: "User creating has failed"}); 
@@ -293,9 +335,10 @@ module.exports.createAdmin = async (req, res, next) => {
             res.status(400).json({responseCode: 0, errorCode: 'iw1003', message : "Bad Request"});
         }    
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in createAdmin method': err.message });
         if (err.name == 'SequelizeUniqueConstraintError'){
             res.status(409).json({responseCode: 0, errorCode: 'iw1005', message : "User already exists with this email"});
-        }else{
+        }else{            
             return next(err);
         }
     }
@@ -331,6 +374,7 @@ module.exports.getAdminsList = async (req, res, next) => {
         const adminResp = await getRecordsWithJoinFromDB('Admin', whereData, includeData, attributes);
         res.status(200).json({responseCode: 1, message: "success", adminsList: adminResp});        
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in getAdminsList method': err.message });
         return next(err);
     }
 }
@@ -343,6 +387,7 @@ module.exports.getUsersCount = async (req, res, next) => {
         const count = await getRecordsCount('Admin');
         res.status(200).json({responseCode: 1, message: "success", count: count});        
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in getUsersCount method': err.message });
         return next(err);
     }
 }
@@ -388,6 +433,7 @@ module.exports.updateAdmin = async (req, res, next) => {
             res.status(400).json({responseCode: 0, errorCode: 'iw1003', message : "Bad Request"});
         }       
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in updateAdmin method': err.message });
         if (err.name == 'SequelizeUniqueConstraintError'){
             res.status(409).json({responseCode: 0, errorCode: 'iw1005', message : "User already exists with this email"});
         }else{
@@ -413,6 +459,7 @@ module.exports.updateAdminStatus = async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message : "Invalid request"});
         }               
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in updateAdminStatus method': err.message });
         return next(err);
     }
 }
@@ -433,6 +480,7 @@ module.exports.deleteAdmin = async (req, res, next) => {
             res.status(400).json({responseCode: 0, errorCode: 'iw1003', message : "Bad Request"});
         }
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in deleteAdmin method': err.message });
         return next(err);
     }
 }
@@ -451,6 +499,7 @@ module.exports.getAdminProfile = async (req, res, next) => {
             res.status(200).json('');
         }                
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in getAdminProfile method': err.message });
         return next(err);
     }
 }
@@ -513,6 +562,7 @@ module.exports.updateEmail = async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad Request"});
         }
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in updateEmail method': err.message });
         if (err.name == 'SequelizeUniqueConstraintError'){
             res.status(409).json({responseCode: 0, errorCode: 'iw1005', message : "User already exists with this email"});
         }else{
@@ -531,6 +581,7 @@ module.exports.updateProfile = async (req, res, next) => {
         const adminResp = await updateRecordInDB('Admin', updateData, {id: adminID}, false);
         res.status(200).json({responseCode: 1, message: "Details updated successfully"});        
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in updateProfile method': err.message });
         if (err.name == 'SequelizeUniqueConstraintError'){
             res.status(409).json({responseCode: 0, errorCode: 'iw1005', message : "Admin already exists with this email"});
         }else{
@@ -592,6 +643,7 @@ module.exports.updatePassword = async (req, res, next) => {
         }
         return res.status(200).json({responseCode: 0, message:errRespMsg});
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in updatePassword method': err.message });
         return next(err);
     }
 }
@@ -646,6 +698,7 @@ module.exports.addBranch = async (req, res, next) => {
             res.status(400).json({responseCode: 0, errorCode: 'iw1003', message : "Bad Request"});
         }    
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in addBranch method': err.message });
         return next(err);
     }
 }
@@ -658,6 +711,7 @@ module.exports.getBranches = async (req, res, next) => {
         const resp = await getRecordsFromDB('Branches');
         res.status(200).json({responseCode: 1, message: "success", branchesList: resp});        
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in getBranches method': err.message });
         return next(err);
     }
 }
@@ -670,6 +724,7 @@ module.exports.getBranches = async (req, res, next) => {
         const count = await getRecordsCount('Branches');
         res.status(200).json({responseCode: 1, message: "success", count: count});        
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in getBranchesCount method': err.message });
         return next(err);
     }
 }
@@ -721,6 +776,7 @@ module.exports.getBranches = async (req, res, next) => {
             res.status(400).json({responseCode: 0, errorCode: 'iw1003', message : "Bad Request"});
         }    
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in updateBranch method': err.message });
         return next(err);
     }
 }
@@ -742,6 +798,7 @@ module.exports.getBranches = async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message : "Invalid request"});
         }               
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in updateBranchStatus method': err.message });
         return next(err);
     }
 }
@@ -762,6 +819,7 @@ module.exports.deleteBranch = async (req, res, next) => {
             res.status(400).json({responseCode: 0, errorCode: 'iw1003', message : "Bad Request"});
         }
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in deleteBranch method': err.message });
         return next(err);
     }
 }
@@ -802,6 +860,7 @@ module.exports.addBranchCommission = async (req, res, next) => {
             res.status(400).json({responseCode: 0, errorCode: 'iw1003', message : "Bad Request"});
         }    
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in addBranchCommission method': err.message });
         if (err.name == 'SequelizeUniqueConstraintError'){
             res.status(409).json({responseCode: 0, errorCode: 'iw1005', message : "This data already exists in this branch"});
         }else{
@@ -822,6 +881,7 @@ module.exports.getBranchCommissions = async (req, res, next) => {
         const resp = await getRecordsFromDB('BranchCommissions', false, whereData);
         res.status(200).json({responseCode: 1, message: "success", list: resp});        
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in getBranchCommissions method': err.message });
         return next(err);
     }
 }
@@ -859,6 +919,7 @@ module.exports.getBranchCommissions = async (req, res, next) => {
             res.status(400).json({responseCode: 0, errorCode: 'iw1003', message : "Bad Request"});
         }    
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in updateBranchCommission method': err.message });
         return next(err);
     }
 }
@@ -879,6 +940,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
             res.status(400).json({responseCode: 0, errorCode: 'iw1003', message : "Bad Request"});
         }
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in deleteBranchCommission method': err.message });
         return next(err);
     }
 }
@@ -912,6 +974,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }                
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in addCommodity method': err.message });
         if (err.name == 'SequelizeUniqueConstraintError'){
             res.status(409).json({responseCode: 0, errorCode: 'iw1005', message : "Details already exists with this name/code"});
         }else{
@@ -936,7 +999,12 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
                 dataArray.push(reqData);
             })
             .on('end', async() => {
-                let resp = await addBulkRecordsToDB(dataArray, 'Commodities', true); 
+                let resp = await addBulkRecordsToDB(dataArray, 'Commodities', true);
+                try {
+                    fs.unlinkSync(`./server/uploads/commodity-list/${req.files['commodity_file'][0]['filename']}`);
+                } catch (error) {
+                    winston.info({ 'AdminController:: Exception occured while unlink file in uploadCommodities method': error.message });
+                } 
                 if(resp){
                     return res.status(200).json({responseCode: 1, message: "success"});
                 } else {
@@ -947,6 +1015,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }                
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in uploadCommodities method': err.message });
         return next(err);
     }
 }
@@ -959,6 +1028,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
         let resp = await getRecordsFromDB('Commodities');
         return res.status(200).json({responseCode: 1, message: "success", commodity_list: resp});        
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in getCommodities method': err.message });
         return next(err);
     }
 }
@@ -990,6 +1060,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
         }        
         return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in updateCommodity method': err.message });
         return next(err);
     }
 }
@@ -1010,6 +1081,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
         }
         return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in deleteCommodity method': err.message });
         return next(err);
     }
 }
@@ -1026,6 +1098,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
             return res.status(200).json({responseCode: 0, message: "failure"});                
         }
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in deleteAllCommodities method': err.message });
         return next(err);
     }
 }
@@ -1066,6 +1139,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
         let resp = await getRecordsWithJoinFromDB('BranchCommissionPayments', whereData, joinData);
         return res.status(200).json({responseCode: 1, message: "success", transactions: resp});     
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in getBranchCommissionPayments method': err.message });
         return next(err);
     }
 }
@@ -1108,6 +1182,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }                
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in addBranchCommissionPayment method': err.message });
         return next(err);
     }
 }
@@ -1150,6 +1225,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }                
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in updateBranchCommissionPayment method': err.message });
         return next(err);
     }
 }
@@ -1169,6 +1245,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
         }
         return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in deleteBranchCommissionPayment method': err.message });
         return next(err);
     }
 }
@@ -1209,6 +1286,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
         let resp = await getRecordsWithJoinFromDB('Expenses', whereData, joinData);
         return res.status(200).json({responseCode: 1, message: "success", transactions: resp});     
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in getExpenses method': err.message });
         return next(err);
     }
 }
@@ -1232,7 +1310,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
             let data = {
                 branch_id: reqBody.branch_id,
                 transaction_date: reqBody.transaction_date,
-                transaction_id: reqBody.transaction_id ? reqBody.transaction_id : null,
+                transaction_id: reqBody.transaction_id ? reqBody.transaction_id : '',
                 expense_type: reqBody.expense_type,
                 mode_of_payment: reqBody.mode_of_payment,
                 amount: reqBody.amount,
@@ -1250,6 +1328,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }                
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in addExpenses method': err.message });
         return next(err);
     }
 }
@@ -1273,7 +1352,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
             let data = {
                 branch_id: reqBody.branch_id,
                 transaction_date: reqBody.transaction_date,
-                transaction_id: reqBody.transaction_id ? reqBody.transaction_id : null,
+                transaction_id: reqBody.transaction_id ? reqBody.transaction_id : '',
                 expense_type: reqBody.expense_type,
                 mode_of_payment: reqBody.mode_of_payment,
                 amount: reqBody.amount,
@@ -1291,6 +1370,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }                
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in updateExpenses method': err.message });
         return next(err);
     }
 }
@@ -1310,6 +1390,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
         }
         return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in deleteExpenses method': err.message });
         return next(err);
     }
 }
@@ -1337,6 +1418,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
         let resp = await getRecordsFromDB('Salaries', false, whereData);
         return res.status(200).json({responseCode: 1, message: "success", list: resp});     
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in getSalaries method': err.message });
         return next(err);
     }
 }
@@ -1374,6 +1456,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }                
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in addSalaries method': err.message });
         return next(err);
     }
 }
@@ -1411,6 +1494,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }                
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in updateSalaries method': err.message });
         return next(err);
     }
 }
@@ -1430,6 +1514,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
         }
         return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in deleteSalaries method': err.message });
         return next(err);
     }
 }
@@ -1480,6 +1565,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
             return res.status(200).json({responseCode: 1, message: "success", list: resp});
         }     
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in getComplaints method': err.message });
         return next(err);
     }
 }
@@ -1509,6 +1595,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
         let closedCount = await getRecordsCount('Complaints', whereData2);
         return res.status(200).json({responseCode: 1, message: "success", countData: {pendingCount, closedCount}});      
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in getComplaintsCount method': err.message });
         return next(err);
     }
 }
@@ -1549,6 +1636,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }                
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in addComplaints method': err.message });
         return next(err);
     }
 }
@@ -1582,6 +1670,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }                
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in updateComplaints method': err.message });
         return next(err);
     }
 }
@@ -1601,6 +1690,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
         }
         return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in deleteComplaints method': err.message });
         return next(err);
     }
 }
@@ -1618,7 +1708,88 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
             return res.status(200).json({responseCode: 0}); 
         }
     }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in downLoadFiles method': err.message });
         return next(err);
     }
 }
+module.exports.generateInvoicePDF = async (req, res, next) => {
+    try {
+        let shipmentData = req.body.data;
+        // Read source template
+        const source = await read(`./server/uploads/invoices/invoive-template.html`, 'utf-8');
+        let commodityList = JSON.parse(shipmentData.commodity_list);        
+        let boxes_3kg = parseInt(shipmentData.boxes_3kg);
+        let boxes_5kg = parseInt(shipmentData.boxes_5kg);
+        let boxes_10kg = parseInt(shipmentData.boxes_10kg);
+        let boxes_15kg = parseInt(shipmentData.boxes_15kg);
+        let boxes_custom = parseInt(shipmentData.boxes_custom);
+        let boxDimentions = [];
+        if(boxes_3kg > 0){            
+            for(let i=0; i<boxes_3kg; i++ ){
+                boxDimentions.push('30*21*21');
+            };
+        }
+        if(boxes_5kg > 0){
+            for(let i=0; i<boxes_5kg; i++ ){
+                boxDimentions.push('36*26*26');
+            };
+        }
+        if(boxes_10kg > 0){
+            for(let i=0; i<boxes_10kg; i++ ){
+                boxDimentions.push('40*35*35');
+            };
+        }
+        if(boxes_15kg > 0){
+            for(let i=0; i<boxes_15kg; i++ ){
+                boxDimentions.push('60*35*35');
+            };
+        }
+        if(boxes_custom > 0){
+            let customBoxDimentions = (shipmentData.custom_box_dimentions).split(',');
+            customBoxDimentions.map((data) => {
+                boxDimentions.push(data);
+            });
+        }
+        let data = {
+            ...shipmentData,
+            date : await formatDate(shipmentData.date, 'dd-mm-yyyy'),
+            awb_number: shipmentData.tracking_no1 ? shipmentData.tracking_no1 : '',
+            box_dimentions: (boxDimentions.toString()).replace(/,/g, ', '),
+            destination_country: (shipmentData.country.country_name).toUpperCase(),
+            commodities: commodityList,
+            total_commodities_quantity: await getSumByKey(commodityList, 'quantity'),
+            total_commodities_unitprice: await getSumByKey(commodityList, 'unit_price'),
+            total_commodity_value: await getSumByKey(commodityList, 'commodity_value'),
+            amount_in_words: await amountInwords(2000)
+        };
+        // Convert to Handlebars template and add the data
+        const template = handlebars.compile(source);
+        const html = template(data);
+
+        // PDF Options
+        const pdf_options = {
+            format: 'A4',
+            orientation: "portrait",
+            border: "0",
+        };
+
+        // Generate PDF and promisify the toFile function
+        const p = pdf.create(html, pdf_options);
+        p.toFile = promisify(p.toFile);
+        let fileNameVal = shipmentData.invoice_number ? (shipmentData.invoice_number).toLowerCase() : new Date().getTime();
+        // Saves the file to the File System as invoice.pdf in the current directorylet
+        let fileName = 'invoice' + fileNameVal + '.pdf'
+        await p.toFile(`./server/uploads/invoices/${fileName}`);
+        const file = `./server/uploads/invoices/${fileName}`;
+        const stream = fs.createReadStream(file);
+        stream.on('end', function() {
+            fs.unlinkSync(file);
+        });
+        return stream.pipe(res);
+    }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in generateInvoicePDF method': err.message });
+        return next(err);
+    }
+}
+ 
 /**************************** DOWNLOAD FILES ***************************/

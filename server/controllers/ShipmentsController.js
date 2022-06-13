@@ -1,5 +1,6 @@
 const { validateData, sendWhatsappMessage } = require('../helpers/common');
 const { AdminModels } = require('../database');
+const winston = require('../helpers/winston');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 
@@ -39,8 +40,7 @@ const {
             reqBody.product_type &&
             reqBody.basic_amount && validateData('float', reqBody.basic_amount) &&
             reqBody.total_amount && validateData('float', reqBody.total_amount) &&
-            reqBody.mode_of_payment && validateData('alpha', reqBody.mode_of_payment) &&
-            reqBody.transaction_id && validateData('nonHTML', reqBody.transaction_id) &&
+            reqBody.mode_of_payment && validateData('alpha', reqBody.mode_of_payment) &&            
             reqBody.sender_name && validateData('alnumSpecial', reqBody.sender_name) &&
             reqBody.sender_address1 && validateData('nonHTML', reqBody.sender_address1) &&
             reqBody.sender_pincode && validateData('pincode', reqBody.sender_pincode) &&
@@ -54,6 +54,9 @@ const {
             reqBody.commodity_list &&
             reqBody.commodity_items_summery
         ){
+            if(reqBody.mode_of_payment !== 'CASH' && (!reqBody.transaction_id || validateData('nonHTML', reqBody.transaction_id))){
+                return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
+            }
             let data = {
                 branch_id: reqBody.branch,
                 invoice_number: reqBody.invoice_number,
@@ -67,7 +70,7 @@ const {
                 boxes_10kg: reqBody.boxes_10kg ? reqBody.boxes_10kg : 0,
                 boxes_15kg: reqBody.boxes_15kg ? reqBody.boxes_15kg : 0,
                 boxes_custom: reqBody.boxes_custom ? reqBody.boxes_custom : 0,
-                custom_box_dimentions: reqBody.custom_box_dimentions ? reqBody.custom_box_dimentions : null,
+                custom_box_dimentions: reqBody.custom_box_dimentions ? reqBody.custom_box_dimentions : '',
                 actual_weight: reqBody.actual_weight,
                 valumetric_weight: reqBody.valumetric_weight,
                 chargable_weight: reqBody.chargable_weight, 
@@ -78,34 +81,35 @@ const {
                 other_amount: reqBody.other_amount ? reqBody.other_amount : 0,
                 total_amount: reqBody.total_amount,
                 mode_of_payment: reqBody.mode_of_payment,
-                transaction_id: reqBody.transaction_id,
+                transaction_id: reqBody.transaction_id ? reqBody.transaction_id : '',
                 sender_name: reqBody.sender_name,
-                sender_company_name: reqBody.sender_company_name ? reqBody.sender_company_name : null,
+                sender_company_name: reqBody.sender_company_name ? reqBody.sender_company_name : '',
                 sender_address1: reqBody.sender_address1,
                 sender_address2: reqBody.sender_address2,
-                sender_address3: reqBody.sender_address3 ? reqBody.sender_address3 : null,
+                sender_address3: reqBody.sender_address3 ? reqBody.sender_address3 : '',
                 sender_pincode: reqBody.sender_pincode,
                 sender_country: 'IN',
                 sender_state: reqBody.sender_state,
                 sender_city: reqBody.sender_city,
                 sender_phone_number: reqBody.sender_phone_number,
-                sender_email: reqBody.sender_email ? reqBody.sender_email : null,
+                sender_email: reqBody.sender_email ? reqBody.sender_email : '',
                 sender_id_proof_type: reqBody.sender_id_proof_type,
                 sender_id_proof_number: reqBody.sender_id_proof_number,
                 receiver_name: reqBody.receiver_name,
-                receiver_company_name: reqBody.receiver_company_name ? reqBody.receiver_company_name : null,
+                receiver_company_name: reqBody.receiver_company_name ? reqBody.receiver_company_name : '',
                 receiver_address1: reqBody.receiver_address1,
                 receiver_address2: reqBody.receiver_address2,
-                receiver_address3: reqBody.receiver_address3 ? reqBody.receiver_address3 : null,
+                receiver_address3: reqBody.receiver_address3 ? reqBody.receiver_address3 : '',
                 receiver_pincode: reqBody.receiver_pincode,
                 receiver_country: reqBody.destination_country,
                 receiver_state: reqBody.receiver_state,
                 receiver_city: reqBody.receiver_city,
                 receiver_phone_number: reqBody.receiver_phone_number,
-                receiver_email: reqBody.receiver_email ? reqBody.receiver_email : null,
+                receiver_email: reqBody.receiver_email ? reqBody.receiver_email : '',
                 commodity_list: reqBody.commodity_list,
                 commodity_items_summery: reqBody.commodity_items_summery,
-                remarks: reqBody.remarks ? reqBody.remarks : null,
+                remarks: reqBody.remarks ? reqBody.remarks : '',
+                status: 1
             }
             if(req.files.kyc_files){
                 let files = [];
@@ -127,6 +131,7 @@ const {
         if (err.name == 'SequelizeUniqueConstraintError'){
             res.status(409).json({responseCode: 0, errorCode: 'iw1005', message : " Country already exists with this name/code"});
         }else{
+            winston.info({ 'ShipmentsController:: Exception occured in addShipment method': err.message });
             return next(err);
         }
     }
@@ -153,7 +158,6 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
             reqBody.basic_amount && validateData('float', reqBody.basic_amount) &&
             reqBody.total_amount && validateData('float', reqBody.total_amount) &&
             reqBody.mode_of_payment && validateData('alpha', reqBody.mode_of_payment) &&
-            reqBody.transaction_id && validateData('nonHTML', reqBody.transaction_id) &&
             reqBody.sender_name && validateData('alnumSpecial', reqBody.sender_name) &&
             reqBody.sender_address1 && validateData('nonHTML', reqBody.sender_address1) &&
             reqBody.sender_pincode && validateData('pincode', reqBody.sender_pincode) &&
@@ -167,75 +171,97 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
             reqBody.commodity_list &&
             reqBody.commodity_items_summery
         ){
-            let data = {
-                branch_id: reqBody.branch,
-                invoice_number: reqBody.invoice_number,
-                date: reqBody.date,
-                service_type: reqBody.service_type,
-                destination_country: reqBody.destination_country,
-                tracking_no1: reqBody.tracking_no1,
-                tracking_no2: reqBody.tracking_no2 ? reqBody.tracking_no2 : null,
-                tracking_no3: reqBody.tracking_no3 ? reqBody.tracking_no3 : null,
-                tracking_no4: reqBody.tracking_no4 ? reqBody.tracking_no4 : null,
-                no_of_pieces: reqBody.no_of_pieces,
-                boxes_3kg: reqBody.boxes_3kg ? reqBody.boxes_3kg : 0,
-                boxes_5kg: reqBody.boxes_5kg ? reqBody.boxes_5kg : 0,
-                boxes_10kg: reqBody.boxes_10kg ? reqBody.boxes_10kg : 0,
-                boxes_15kg: reqBody.boxes_15kg ? reqBody.boxes_15kg : 0,
-                boxes_custom: reqBody.boxes_custom ? reqBody.boxes_custom : 0,
-                custom_box_dimentions: reqBody.custom_box_dimentions ? reqBody.custom_box_dimentions : null,
-                actual_weight: reqBody.actual_weight,
-                valumetric_weight: reqBody.valumetric_weight,
-                chargable_weight: reqBody.chargable_weight, 
-                medicine_shipment: reqBody.medicine_shipment,     
-                product_type: reqBody.product_type,
-                basic_amount: reqBody.basic_amount,
-                gst_amount: reqBody.gst_amount ? reqBody.gst_amount : (reqBody.basic_amount * 18) / 100,
-                other_amount: reqBody.other_amount ? reqBody.other_amount : 0,
-                total_amount: reqBody.total_amount,
-                mode_of_payment: reqBody.mode_of_payment,
-                transaction_id: reqBody.transaction_id,
-                sender_name: reqBody.sender_name,
-                sender_company_name: reqBody.sender_company_name ? reqBody.sender_company_name : null,
-                sender_address1: reqBody.sender_address1,
-                sender_address2: reqBody.sender_address2,
-                sender_address3: reqBody.sender_address3 ? reqBody.sender_address3 : null,
-                sender_pincode: reqBody.sender_pincode,
-                sender_country: 'IN',
-                sender_state: reqBody.sender_state,
-                sender_city: reqBody.sender_city,
-                sender_phone_number: reqBody.sender_phone_number,
-                sender_email: reqBody.sender_email ? reqBody.sender_email : null,
-                sender_id_proof_type: reqBody.sender_id_proof_type,
-                sender_id_proof_number: reqBody.sender_id_proof_number,
-                receiver_name: reqBody.receiver_name,
-                receiver_company_name: reqBody.receiver_company_name ? reqBody.receiver_company_name : null,
-                receiver_address1: reqBody.receiver_address1,
-                receiver_address2: reqBody.receiver_address2,
-                receiver_address3: reqBody.receiver_address3 ? reqBody.receiver_address3 : null,
-                receiver_pincode: reqBody.receiver_pincode,
-                receiver_country: reqBody.destination_country,
-                receiver_state: reqBody.receiver_state,
-                receiver_city: reqBody.receiver_city,
-                receiver_phone_number: reqBody.receiver_phone_number,
-                receiver_email: reqBody.receiver_email ? reqBody.receiver_email : null,
-                commodity_list: JSON.stringify(reqBody.commodity_list),
-                commodity_items_summery: reqBody.commodity_items_summery,
-                remarks: reqBody.remarks ? reqBody.remarks : null
+            if(reqBody.mode_of_payment !== 'CASH' && (!reqBody.transaction_id || validateData('nonHTML', reqBody.transaction_id))){
+                return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
             }
-            const resp = await updateShipmentsModelRecordInDB('Shipments', data, {id: reqBody.id});
-            if(resp){
-                return res.status(200).json({responseCode: 1, message: "Details updated successfully"});
+            let shipmentsDetails = await getOneShipmentsModelRecordFromDB('Shipments', {id: reqBody.id});
+            if(shipmentsDetails){
+                let currentDate = new Date().toISOString().split('T')[0];
+                let createdDate = new Date(shipmentsDetails.createdAt);
+                let futureDate = new Date(createdDate.setDate(createdDate.getDate() + 2)).toISOString().split('T')[0];
+                if(futureDate >= currentDate || req.tokenData.role_type === 'Super-Admin'){
+                    let data1 = {
+                        invoice_number: reqBody.invoice_number,
+                        date: reqBody.date,
+                        service_type: reqBody.service_type,
+                        destination_country: reqBody.destination_country,
+                        tracking_no1: reqBody.tracking_no1,
+                        tracking_no2: reqBody.tracking_no2 ? reqBody.tracking_no2 : '',
+                        tracking_no3: reqBody.tracking_no3 ? reqBody.tracking_no3 : '',
+                        tracking_no4: reqBody.tracking_no4 ? reqBody.tracking_no4 : '',
+                        sender_name: reqBody.sender_name,
+                        sender_company_name: reqBody.sender_company_name ? reqBody.sender_company_name : '',
+                        sender_address1: reqBody.sender_address1,
+                        sender_address2: reqBody.sender_address2,
+                        sender_address3: reqBody.sender_address3 ? reqBody.sender_address3 : '',
+                        sender_pincode: reqBody.sender_pincode,
+                        sender_country: 'IN',
+                        sender_state: reqBody.sender_state,
+                        sender_city: reqBody.sender_city,
+                        sender_phone_number: reqBody.sender_phone_number,
+                        sender_email: reqBody.sender_email ? reqBody.sender_email : '',
+                        sender_id_proof_type: reqBody.sender_id_proof_type,
+                        sender_id_proof_number: reqBody.sender_id_proof_number,
+                        receiver_name: reqBody.receiver_name,
+                        receiver_company_name: reqBody.receiver_company_name ? reqBody.receiver_company_name : '',
+                        receiver_address1: reqBody.receiver_address1,
+                        receiver_address2: reqBody.receiver_address2,
+                        receiver_address3: reqBody.receiver_address3 ? reqBody.receiver_address3 : '',
+                        receiver_pincode: reqBody.receiver_pincode,
+                        receiver_country: reqBody.destination_country,
+                        receiver_state: reqBody.receiver_state,
+                        receiver_city: reqBody.receiver_city,
+                        receiver_phone_number: reqBody.receiver_phone_number,
+                        receiver_email: reqBody.receiver_email ? reqBody.receiver_email : '',
+                        remarks: reqBody.remarks ? reqBody.remarks : ''
+                    }
+                    let data2 = {};
+                    if(req.tokenData.role_type === 'Super-Admin'){
+                        data2 = {
+                            branch_id: reqBody.branch,
+                            no_of_pieces: reqBody.no_of_pieces,
+                            boxes_3kg: reqBody.boxes_3kg ? reqBody.boxes_3kg : 0,
+                            boxes_5kg: reqBody.boxes_5kg ? reqBody.boxes_5kg : 0,
+                            boxes_10kg: reqBody.boxes_10kg ? reqBody.boxes_10kg : 0,
+                            boxes_15kg: reqBody.boxes_15kg ? reqBody.boxes_15kg : 0,
+                            boxes_custom: reqBody.boxes_custom ? reqBody.boxes_custom : 0,
+                            custom_box_dimentions: reqBody.custom_box_dimentions ? reqBody.custom_box_dimentions : '',
+                            actual_weight: reqBody.actual_weight,
+                            valumetric_weight: reqBody.valumetric_weight,
+                            chargable_weight: reqBody.chargable_weight, 
+                            medicine_shipment: reqBody.medicine_shipment,     
+                            product_type: reqBody.product_type,
+                            basic_amount: reqBody.basic_amount,
+                            gst_amount: reqBody.gst_amount ? reqBody.gst_amount : (reqBody.basic_amount * 18) / 100,
+                            other_amount: reqBody.other_amount ? reqBody.other_amount : 0,
+                            total_amount: reqBody.total_amount,
+                            mode_of_payment: reqBody.mode_of_payment,
+                            transaction_id: reqBody.transaction_id ? reqBody.transaction_id : '',                            
+                            commodity_list: JSON.stringify(reqBody.commodity_list),
+                            commodity_items_summery: reqBody.commodity_items_summery
+                        }
+                    }
+                    let data = {...data1, ...data2};
+                    const resp = await updateShipmentsModelRecordInDB('Shipments', data, {id: reqBody.id});
+                    if(resp){
+                        return res.status(200).json({responseCode: 1, message: "Details updated successfully"});
+                    }else{
+                        return res.status(200).json({responseCode: 0, message: "Details updating has failed"});
+                    } 
+                }else{
+
+                }
             }else{
-                return res.status(200).json({responseCode: 0, message: "Details updating has failed"});
-            }            
+                return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
+            }           
         }else{
-            return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request123"});
+            return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }                
     }catch (err) {
+        winston.info({ 'ShipmentsController:: Exception occured in updateShipmentDetails method': err.message });
         if (err.name == 'SequelizeUniqueConstraintError'){
             res.status(409).json({responseCode: 0, errorCode: 'iw1005', message : " Shipment already exists with this invoice number"});
-        }else{
+        }else{           
             return next(err);
         }
     }
@@ -255,6 +281,7 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
         let resp = await getShipmentsList(whereData);
         return res.status(200).json({responseCode: 1, message: "success", shipments: resp});      
     }catch (err) {
+        winston.info({ 'ShipmentsController:: Exception occured in getEmptyTrackingShipmentsList method': err.message });
         return next(err);
     }
 }
@@ -286,6 +313,7 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
         let shipmentsWithTrackingNoCount = await getShipmentsModelRecordsCount('Shipments', whereData2);
         return res.status(200).json({responseCode: 1, message: "success", countData: {shipmentsWithoutTrackingNoCount, shipmentsWithTrackingNoCount}});      
     }catch (err) {
+        winston.info({ 'ShipmentsController:: Exception occured in getShipmentsCount method': err.message });
         return next(err);
     }
 }
@@ -317,6 +345,7 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
         let resp = await getShipmentsList(whereData);
         return res.status(200).json({responseCode: 1, message: "success", shipments: resp});     
     }catch (err) {
+        winston.info({ 'ShipmentsController:: Exception occured in getShipmentsList method': err.message });
         return next(err);
     }
 }
@@ -335,18 +364,13 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
         }else if (req.tokenData.role_type != 'Super-Admin'){
             whereData.branch_id = req.tokenData.branch_id;
         }
-        // if(req.body.from_date){
-        //     let toDate = req.body.to_date ? req.body.to_date : new Date().toISOString().split('T')[0];
-        //     whereData.date = {[Op.between]: [req.body.from_date, toDate]};
-        // }
-        
-        // whereData.tracking_no1 = { [Op.not]: null};
 
         let attributes = ['id','branch_id','date','boxes_3kg','boxes_5kg','boxes_10kg','boxes_15kg','boxes_custom','custom_box_dimentions'];
 
         let resp = await getShipmentsModelRecordsWithAttributesFromDB('Shipments', whereData, attributes, false);
         return res.status(200).json({responseCode: 1, message: "success", shipments: resp});     
     }catch (err) {
+        winston.info({ 'ShipmentsController:: Exception occured in getShipmentsByBranch method': err.message });
         return next(err);
     }
 }
@@ -364,6 +388,7 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"}); 
         }   
     }catch (err) {
+        winston.info({ 'ShipmentsController:: Exception occured in getShipmentDetails method': err.message });
         return next(err);
     }
 }
@@ -382,6 +407,7 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"}); 
         }   
     }catch (err) {
+        winston.info({ 'ShipmentsController:: Exception occured in checkInvoiceNoAvailable method': err.message });
         return next(err);
     }
 }
@@ -427,6 +453,7 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
         }        
         return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
     }catch (err) {
+        winston.info({ 'ShipmentsController:: Exception occured in updateShipment method': err.message });
         return next(err);
     }
 }
@@ -444,9 +471,9 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
         ){
             let data = {
                 tracking_no1: reqBody.tracking_no1,
-                tracking_no2: reqBody.tracking_no2 ? reqBody.tracking_no2 : null,
-                tracking_no3: reqBody.tracking_no3 ? reqBody.tracking_no3 : null,
-                tracking_no4: reqBody.tracking_no4 ? reqBody.tracking_no4 : null,
+                tracking_no2: reqBody.tracking_no2 ? reqBody.tracking_no2 : '',
+                tracking_no3: reqBody.tracking_no3 ? reqBody.tracking_no3 : '',
+                tracking_no4: reqBody.tracking_no4 ? reqBody.tracking_no4 : '',
             }
             const resp = await updateShipmentsModelRecordInDB('Shipments', data, {id: reqBody.id});
             if(resp){
@@ -476,6 +503,7 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
         }        
         return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
     }catch (err) {
+        winston.info({ 'ShipmentsController:: Exception occured in updateShipmentTrackingNos method': err.message });
         return next(err);
     }
 }
@@ -499,6 +527,7 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
         }        
         return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
     }catch (err) {
+        winston.info({ 'ShipmentsController:: Exception occured in annonymiseShipment method': err.message });
         return next(err);
     }
 }
@@ -519,6 +548,7 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
         }
         return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
     }catch (err) {
+        winston.info({ 'ShipmentsController:: Exception occured in deleteShipment method': err.message });
         return next(err);
     }
 }
@@ -562,6 +592,7 @@ module.exports.getBankTransactions = async (req, res, next) => {
         let resp = await getShipmentsModelRecordsWithJoinFromDB('BankTransactions', whereData, joinData);
         return res.status(200).json({responseCode: 1, message: "success", transactions: resp});     
     }catch (err) {
+        winston.info({ 'ShipmentsController:: Exception occured in getBankTransactions method': err.message });
         return next(err);
     }
 }
@@ -605,6 +636,7 @@ module.exports.getBankTransactions = async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }                
     }catch (err) {
+        winston.info({ 'ShipmentsController:: Exception occured in addBankTransaction method': err.message });
         return next(err);
     }
 }
@@ -649,6 +681,7 @@ module.exports.getBankTransactions = async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }                
     }catch (err) {
+        winston.info({ 'ShipmentsController:: Exception occured in updateBankTransaction method': err.message });
         return next(err);
     }
 }

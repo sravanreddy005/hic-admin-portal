@@ -14,6 +14,7 @@ router.post('/updateEmail', jwt.verifyAdminJwtToken, AdminController.updateEmail
 router.post('/updatePassword', jwt.verifyAdminJwtToken, AdminController.updatePassword);
 
 router.post('/downLoadFiles', jwt.verifyAdminJwtToken, AdminController.downLoadFiles);
+router.post('/generateInvoicePDF', jwt.verifyAdminJwtToken, AdminController.generateInvoicePDF);
 
 //Admin Modules
 router.post('/getModules', jwt.verifyAdminJwtTokenWithAccess('modules-list', 'view'), AdminController.getModules);

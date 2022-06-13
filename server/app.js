@@ -5,8 +5,7 @@ const xss = require('xss-clean');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 
-
-var app = express();
+const app = express();
 
 require('./config/config');
 require('./database');
@@ -33,9 +32,9 @@ app.use(helmet());
 
 app.use('/api/auth', authRoutes);
 app.use('/api', adminRoutes);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // app.use(express.static(path.join(__dirname, 'dist/iw')));
 // app.use('/', express.static(path.join(__dirname, 'dist/iw')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 winston.stream = {
     write: function (message, encoding) {
@@ -51,20 +50,17 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
     res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With,content-type, Authorization');
+    res.setHeader('Content-Security-Policy', "default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline'; font-src: * 'unsafe-inline';");
+    if (req.secure) {
+        res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+    }
     next();
 });
 
 // error handler
 app.use((err, req, res, next) => {
-    if (err.name === 'ValidationError') {        
-        let valErrors = [];
-        Object.keys(err.errors).forEach(key => valErrors.push(err.errors[key].message));
-        const respMsg = {responseCode: 0, message: "iw1003 :: Bad Request", errorCode: 'iw1003', errors: valErrors};
-        res.status(400).send(respMsg)
-    }else{
-        respMsg = {responseCode: 0, errorCode: 'iw1004', message: "iw1004 :: Somthing went wrong ! Please try again."};
-        res.status(200).send(respMsg)
-    }
+    let respMsg = {responseCode: 0, errorCode: 'iw1004', message: "iw1004 :: Somthing went wrong ! Please try again."};
+    res.status(200).send(respMsg)
 });
 
 

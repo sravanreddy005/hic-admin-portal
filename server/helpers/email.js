@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 var handlebars = require('handlebars');
 var fs = require('fs');
-var fromMail = 'info@innowig.com';
+var fromMail = 'info@hiclogistics.com';
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -35,7 +35,7 @@ module.exports.sendMail = (toMail, replaceData, type) => {
                 const template = handlebars.compile(html);
                 const htmlToSend = template(replaceData);
                 const mailOptions = {
-                    from: 'InnoWig ' + fromMail,
+                    from: 'HIC Logistics ' + fromMail,
                     to: toMail,
                     subject: subject,
                     html: htmlToSend

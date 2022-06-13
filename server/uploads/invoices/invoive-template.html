@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>&nbsp;</title>
+  <style>
+    body {
+      position: relative;
+      width: 21cm;
+      height: 20cm;
+      /* margin: 5px; */
+      padding: 10px;
+      color: #555555;
+      background: #FFFFFF;
+      font-size: 10px;
+      font-weight: bold;
+      font-family: 'Open Sans', sans-serif;
+      box-sizing: border-box;
+      padding-right: 25px;
+    }
+
+    .invoice-template {
+      border: 2px solid #ddd;
+    }
+
+    #logo {
+      float: left;
+      margin-top: 8px;
+    }
+
+    #logo img {
+      height: 70px;
+    }
+
+    .details {
+      border: 1px solid #ddd;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    .column {
+      float: left;
+      width: 50%;
+      padding: 0px;
+    }
+
+    .border-right {
+      border-right: 1px solid #ddd;
+    }
+
+    .row::after {
+      content: "";
+      clear: both;
+      display: table;
+    }
+
+    table {
+      border-collapse: collapse;
+      border-spacing: 0;
+      width: 100%;  
+    }
+
+    th,td {
+      text-align: left;
+      padding: 5px;
+      border: 1px solid #ddd;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+    .pad-5 {
+      padding: 5px;
+    }
+    .pad-10 {
+      padding: 10px;
+    }
+    .middle-cols {
+      text-align: center;
+    }
+
+    strong {
+      font-size: 11px;
+      font-weight: bolder;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="invoice-body">
+    <div>
+      <h2 class="text-center" style="margin-bottom: 0px">INVOICE</h2>
+    </div>
+    <main class="invoice-template">
+      <div class="row details">
+        <div class="column" style="border-right: 2px solid #ddd;">
+          <div class="pad-5">
+            <strong>SHIPPER</strong> : <br />
+            {{sender_name}} <br />
+            {{sender_address1}} {{sender_address2}} {{sender_address3}} <br />
+            {{sender_city}} {{sender_state}} - {{sender_pincode}} <br /><br />
+            INDIA <br />
+            {{sender_id_proof_type}}- {{sender_id_proof_number}} <br />
+            PHONE : {{sender_phone_number}}
+          </div>
+        </div>
+        <div class="column">
+          <div class="pad-5">
+            <strong>INVOICE NO</strong> : {{invoice_number}} <br />
+            <strong>DATE</strong> : {{date}} <br />
+            <strong>EXPORTER'S REF</strong> :  <br />
+            <strong>AWB NO</strong> : {{awb_number}}<br />
+            <strong>PCS</strong> : {{no_of_pieces}} PKT<br />
+            <strong>Dimm</strong> : {{box_dimentions}}
+          </div>
+        </div>
+      </div>      
+      <div class="row details">
+        <div class="column" style="border-right: 2px solid #ddd;">
+          <div class="pad-5">
+            <strong>CONSIGNEE</strong> : <br />
+            {{receiver_name}} <br />
+            {{receiver_address1}} {{receiver_address2}} {{receiver_address3}} <br /><br />
+            {{receiver_city}} <br />
+            {{receiver_state}} <br />
+            {{destination_country}} <br />
+            PHONE : {{receiver_phone_number}}
+          </div>
+        </div>
+        <div class="column">
+          <div class="pad-5">
+            <strong>WEIGHT</strong> : {{chargable_weight}} KGS <br /><br /><br />
+            <strong>TERMS OF DELIVERY & PAYMENT</strong>:<br /><br />
+            BEING SENDING FOR GIFT PURPOSE AND NOT FOR SALE<br />
+            VALUE DECLARED ONLY FOR CUSTOM PURPOSE
+          </div>
+        </div>
+      </div>
+      <div class="row middle-cols" style="border: 1px solid #ddd;">
+        <div class="column" style="border-right: 2px solid #ddd; width: 33%;">
+          <div class="pad-5">
+            <strong>PRE-CARRIAGE BY</strong> <br />
+            &nbsp;
+          </div>
+        </div>
+        <div class="column" style="border-right: 2px solid #ddd; width: 33%">
+          <div class="pad-5">            
+            <strong>PORT OF RECEIPT BY PRE CA</strong> <br />
+            &nbsp;
+          </div>
+        </div>
+        <div class="column" style="width: 33%">
+          <div class="pad-5">
+            <strong>OTHER REFERENCE (S)</strong> <br />
+            &nbsp;
+          </div>
+        </div>
+      </div>
+      <div class="row middle-cols" style="border: 1px solid #ddd;">
+        <div class="column" style="border-right: 2px solid #ddd; width: 33%;">
+          <div class="pad-5">
+            <strong>VESSEL/FLIGHT NO</strong> <br />
+                &nbsp;
+          </div>
+        </div>
+        <div class="column" style="border-right: 2px solid #ddd; width: 33%">
+          <div class="pad-5">            
+            <strong>PLACE OF LOADING</strong> <br />
+            BANGALORE
+          </div>
+        </div>
+        <div class="column" style="width: 33%">
+          <div class="pad-5">
+            <strong>COUNTRY OF ORIGIN</strong> <br />
+            INDIA
+          </div>
+        </div>
+      </div>
+      <div class="row middle-cols" style="border: 1px solid #ddd;">
+        <div class="column" style="border-right: 2px solid #ddd; width: 33%;">
+          <div class="pad-5">
+            <strong>PORT OF DISCHARGE</strong> <br />
+            BANGALORE
+          </div>
+        </div>
+        <div class="column" style="border-right: 2px solid #ddd; width: 33%">
+          <div class="pad-5">            
+            <strong>COUNTRY OF DESTINATION</strong> <br />
+            {{destination_country}}
+          </div>
+        </div>
+        <div class="column" style="width: 33%">
+          <div class="pad-5">
+            <strong>FINAL DESTINATION</strong> <br />
+            {{destination_country}}
+          </div>
+        </div>
+      </div>      
+      <div class="row">
+        <table>
+          <thead>
+            <tr class="text-center">
+              <th>S.NO</th>
+              <th>BOX</th>
+              <th>DESCRIPTION OF GOODS</th>
+              <th>HS CODE</th>
+              <th>QTY</th>
+              <th>RATE(Rs)</th>
+              <th>AMOUNT(Rs)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each commodities}}
+            <tr>
+              <td>{{inc @index "+" 1}}</td>
+              <td>{{this.box_number}}</td>
+              <td>{{this.commodity_name}}</td>
+              <td>{{this.hsn_code}}</td>
+              <td>{{this.quantity}}</td>
+              <td>{{item.unit_price}}</td>
+              <td>{{this.commodity_value}}</td>
+            </tr>
+            {{/each}}                     
+          </tbody>
+          <tfoot style="border-top: 2px solid #ddd;">
+            <tr>
+              <td colspan="3"><strong>AMOUNT IN WORDS</strong> : INR {{amount_in_words}}</td>
+              <td><strong>TOTAL</strong></td>
+              <td><strong>{{total_commodities_quantity}}</strong></td>
+              <td><strong>{{total_commodities_unitprice}}</strong></td>
+              <td><strong>{{total_commodity_value}}</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div class="row details">
+        <div class="column" style="border-right: 2px solid #ddd; width: 70%;">
+          <div class="pad-5">
+            DECLAIRATION : THIS IS CERTIFY THAT THE RATE AND QUANTITY MENTIONED IN THIS INVOICE IS TRUE AND CORRECT.
+            &nbsp; <br/>
+            &nbsp; <br/>
+            &nbsp; <br/>
+            &nbsp; <br/>
+            &nbsp; <br/>
+            &nbsp; <br/>
+          </div>
+        </div>
+        <div class="column" style="width: 30%;">
+          <div class="pad-5">
+            FOR, <br /><br/><br/><br/><br/><br/>
+            <div class="text-center">
+              AUTHORIZED SIGNATORY
+            </div>
+          </div>
+        </div>
+      </div> 
+    </main>
+  </div>
+</body>
+
+</html>

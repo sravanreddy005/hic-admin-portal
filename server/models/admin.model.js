@@ -56,9 +56,6 @@ AdminModels.Roles = sequelize.define('roles', {
     indexes: [
       {
         fields: ['role_name']
-      },
-      {
-        fields: ['access_modules']
       }
     ]
   }
@@ -320,7 +317,7 @@ AdminModels.Commodities = sequelize.define('commodities', {
     primaryKey: true
   },
   product_name: {
-    type: Sequelize.TEXT,
+    type: Sequelize.STRING(255),
     allowNull: false,
     unique: true
   },

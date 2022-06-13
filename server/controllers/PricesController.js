@@ -1,6 +1,7 @@
 const { validateData } = require('../helpers/common');
 const csv = require('csv-parser');
 const fs = require('fs');
+const winston = require('../helpers/winston');
 
 const {  
     addPricesModelRecordToDB,
@@ -25,7 +26,7 @@ module.exports.uploadCountries = async (req, res, next) => {
             countriesArray.push(countryData);
         })
         .on('end', async() => {
-            await addPricesModelRecordToDB(countriesArray);  
+            await addPricesModelRecordToDB(countriesArray);              
             res.status(200).json({responseCode: 1, message: "success"});          
         });
     }catch (err) {
@@ -78,6 +79,21 @@ module.exports.uploadCountries = async (req, res, next) => {
     }catch (err) {
         return next(err);
     }
+}
+
+/**
+ * fetching the countries list 
+ */
+ module.exports.getCountryDetails = async (countryCode) => {
+     return new Promise(async(resolve, reject) => {
+        try {
+            let whereData = {country_code: countryCode};
+            let respData = await getOnePricesModelRecordFromDB('Countries', whereData);
+            resolve(respData)
+        }catch (err) {
+            resolve(null);
+        }
+     });    
 }
 
 /**
@@ -291,8 +307,13 @@ module.exports.uploadCountries = async (req, res, next) => {
                 }
                 zonesArray.push(countryData);
             })
-            .on('end', async() => {
+            .on('end', async() => {                
                 let resp = await addPricesModelRecordToDB(zonesArray, 'CarrierCountryZones', true); 
+                try {
+                    fs.unlinkSync(`./server/uploads/carrier-zones/${req.files['carrier_zones_file'][0]['filename']}`);
+                } catch (error) {
+                    winston.info({ 'PricesController:: Exception occured while unlink file in uploadCarrierZones method': error.message });
+                }                
                 if(resp){
                     return res.status(200).json({responseCode: 1, message: "success"});
                 } else {
@@ -491,7 +512,7 @@ module.exports.uploadCountries = async (req, res, next) => {
                         zone: j,
                         weight_from : weightFrom,
                         weight_to: weightTo,
-                        price_per_kg: data[`${j}`],
+                        price_per_kg: data[`${j}`] ? data[`${j}`] : 0,
                         medicine_price_per_kg: 0,
                         carrier_id: reqBody.carrier_id,
                     }
@@ -501,6 +522,11 @@ module.exports.uploadCountries = async (req, res, next) => {
             })
             .on('end', async() => {
                 let resp = await addPricesModelRecordToDB(pricesArray, 'Prices', true, true, reqBody.carrier_id); 
+                try {
+                    fs.unlinkSync(`./server/uploads/prices/${req.files['prices_file'][0]['filename']}`);
+                } catch (error) {
+                    winston.info({ 'PricesController:: Exception occured while unlink file in uploadPrices method': error.message });
+                }
                 if(resp){
                     return res.status(200).json({responseCode: 1, message: "success"});
                 } else {

@@ -248,7 +248,7 @@ module.exports.getStockRequests = async (req, res, next) => {
                 box_weight: reqBody.stock_type === 'BOXES' ? reqBody.box_weight : 'N/A',
                 request_quantity: reqBody.quantity,
                 approved_quantity: reqBody.approved_quantity,
-                approved_date: reqBody.status === 'APPROVED' || reqBody.status === 'REJECTED' ? new Date().toISOString().split('T')[0] : null,
+                approved_date: reqBody.status === 'APPROVED' || reqBody.status === 'REJECTED' ? new Date().toISOString().split('T')[0] : '',
                 status: reqBody.status,
                 description: reqBody.description ? reqBody.description : ''
             }

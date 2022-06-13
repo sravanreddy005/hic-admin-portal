@@ -197,12 +197,16 @@ module.exports.stringToSlug = (str) => {
 module.exports.sendWhatsappMessage = (toMobileNo, template) => {
     return new Promise(async(resolve, reject) => {
         try {
-            let fromPhoneNoID = '100745955996943';
+            let fromPhoneNoID = '112601111471141';
             let apiURL = `https://graph.facebook.com/v13.0/${fromPhoneNoID}/messages`;
             let headers = {
-                'Authorization': 'Bearer EAAX6oJjZBZATkBAF9GoAZBOn0y29x6p4d8BtXaDosqiVaRZBoltOJUbZBbQJHaes7y4TxPdRVarcRRjuwQ5zgEUu7D8Rm6OHaknAaSOVLEAnPOayvMssp64pZCduKYjDMU73NvNXKKvV2O0Thx9QcLJ49b51N2vUZBncoJIUQHN9sPvnuuvAp7KrQn2w71RZCTtoSIqBS3ClpgZDZD',
+                'Authorization': 'Bearer EAANE47CvoO4BAB4qQXd8A2hFT6ZCaiHZAScyhpxfoDdZBCYICuMGY16kMaNs5eu28hFTY2rSzzJR7zVoIMInWJBJo6XO6XZC2QGjojvKKT2vyB1ZBJlNgYWHPLv3JZBgrWwYoWfcEYiIZAwPpiitRKkJIOhCpcXqJtvOb9RrUgg2pQknk1aOYo2',
                 'Content-Type': 'application/json'
             };
+            // let headers = {
+            //     'Authorization': 'Bearer EAANE47CvoO4BAE49dB54pus4fxv8TZCuw3JQlrIMZA7qt9DfIRLXoOSmJGQ3GCAeyP3xXS0WXe0WPTcFrUBZCA2KNwAeeob49C3TZCiVDNxVPKrCLBZAvu9XvZAA3umjNDY8eZAGzAwrDFUETl04rRW9dE0STflRmk8Fx5TlLSxdxhUI6SP71MiMKlJYaTi3PtBFL3yXZC2xMAZDZD',
+            //     'Content-Type': 'application/json'
+            // };
             let data = {
                 messaging_product: 'whatsapp',
                 to: toMobileNo,
@@ -258,3 +262,64 @@ module.exports.externalApiRequest1 = (apiURL, data, headers) => new Promise(asyn
         reject(error);
     });
 });
+
+module.exports.amountInwords = (amount) => {
+    return new Promise((resolve, reject) => {
+      amount = parseInt(amount);
+      const a = ['','one ','two ','three ','four ', 'five ','six ','seven ','eight ','nine ','ten ','eleven ','twelve ','thirteen ','fourteen ','fifteen ','sixteen ','seventeen ','eighteen ','nineteen '];
+      const b = ['', '', 'twenty','thirty','forty','fifty', 'sixty','seventy','eighty','ninety'];
+      n = ('000000000' + amount).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+      if (!n) resolve(); var str = '';
+      str += (n[1] != 0) ? (a[Number(n[1])] || b[n[1][0]] + ' ' + a[n[1][1]]) + 'crore ' : '';
+      str += (n[2] != 0) ? (a[Number(n[2])] || b[n[2][0]] + ' ' + a[n[2][1]]) + 'lakh ' : '';
+      str += (n[3] != 0) ? (a[Number(n[3])] || b[n[3][0]] + ' ' + a[n[3][1]]) + 'thousand ' : '';
+      str += (n[4] != 0) ? (a[Number(n[4])] || b[n[4][0]] + ' ' + a[n[4][1]]) + 'hundred ' : '';
+      str += (n[5] != 0) ? ((str != '') ? 'and ' : '') + (a[Number(n[5])] || b[n[5][0]] + ' ' + a[n[5][1]]) + 'only' : '';
+      resolve((str.charAt(0).toUpperCase() + str.slice(1)).toUpperCase() + ' ONLY');
+    });
+  }
+  
+  module.exports.formatDate = (date, format = 'dd/mm/yyyy') => {
+    return new Promise((resolve, reject) => {
+      if(date){
+        let formattedDate = new Date(date);
+        let day = formattedDate.getDate().toString();
+        let month = (formattedDate.getMonth() + 1).toString();
+        let year = formattedDate.getFullYear().toString();
+        let returnDate = day + '/' + month + '/' + year;
+        if(format && format === 'dd/mm/yyyy'){
+          returnDate = day + '/' + month + '/' + year;
+        }else if(format && format === 'yyyy/mm/dd'){
+          returnDate = year + '/' + month + '/' + day;
+        }else if(format && format === 'mm/dd/yyyy'){
+          returnDate = month + '/' + day + '/' + year;
+        }else if(format && format === 'dd-mm-yyyy'){
+          returnDate = day + '-' + month + '-' + year;
+        }
+        resolve(returnDate);
+      }else{
+        resolve();
+      }
+    });
+  }
+
+module.exports.getSumByKey = (arr, key) => {
+    return new Promise((resolve, reject) => {
+        let value = arr.reduce((accumulator, current) => accumulator + Number(current[key]), 0);
+        resolve(value);
+    });
+}
+
+module.exports.getSumByKeyWithFilter = (arr, key, compareKey ='', compareVal = '') => {
+    return new Promise((resolve, reject) => {
+        let value = arr.filter((data) => data[compareKey] === compareVal).reduce((accumulator, current) => accumulator + Number(current[key]), 0);
+        resolve(value);
+    });
+}
+
+module.exports.getSumByKeyWithFilters = (arr, key, compareKey1 = '', compareVal1 = '', compareKey2 = '', compareVal2 = '') => {
+    return new Promise((resolve, reject) => {        
+        let value = arr.filter((data) => data[compareKey1] === compareVal1 && data[compareKey2] === compareVal2).reduce((accumulator, current) => accumulator + Number(current[key]), 0);
+        resolve(value);
+    });
+}
