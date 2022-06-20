@@ -10,7 +10,7 @@ router.post('/forgotPassword', AuthController.forgotPassword);
 router.post('/resetPassword', AuthController.resetPassword);
 router.post('/validateResetToken', AuthController.validateResetToken);
 router.post('/logoutUser', jwt.verifyJwtTokenWithoutExpiry, AuthController.logoutUser);
-router.post('/getAccessToken', AuthController.getAccessToken);
+router.post('/refreshToken', jwt.verifyJwtTokenWithoutExpiry, AuthController.refreshToken);
 
 
 module.exports = router;

@@ -7,7 +7,8 @@
   <style>
     body {
       position: relative;
-      width: 21cm;
+      /* width: 21cm; */
+      width: 100%;
       height: 20cm;
       /* margin: 5px; */
       padding: 10px;
@@ -124,7 +125,8 @@
           <div class="pad-5">
             <strong>CONSIGNEE</strong> : <br />
             {{receiver_name}} <br />
-            {{receiver_address1}} {{receiver_address2}} {{receiver_address3}} <br /><br />
+            VINAY LOKESH 65 EPPING ROAD PHILIPS HEALTH CARE AUSTRALIA NORTH RYDE <br /><br />
+            <!-- {{receiver_address1}} {{receiver_address2}} {{receiver_address3}} <br /><br /> -->
             {{receiver_city}} <br />
             {{receiver_state}} <br />
             {{destination_country}} <br />
@@ -218,7 +220,7 @@
             <tr>
               <td>{{inc @index "+" 1}}</td>
               <td>{{this.box_number}}</td>
-              <td>{{this.commodity_name}}</td>
+              <td>{{this.commodity_name}} {{this.commodity_name}} {{this.commodity_name}}</td>
               <td>{{this.hsn_code}}</td>
               <td>{{this.quantity}}</td>
               <td>{{item.unit_price}}</td>

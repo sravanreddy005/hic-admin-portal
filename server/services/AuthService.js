@@ -104,7 +104,7 @@ class AuthService {
         return new Promise(async(resolve, reject) => { 
             try {
                 let exceptTokens = activeTokenRecords.map(value => value.access_token);
-                const result = await AuthModels.TokenRecords.destroy({ where: { client_id: id, access_token: {[Sequelize.Op.notIn] : exceptTokens} } });
+                const result = await AuthModels.TokenRecords.destroy({ where: { user_id: id, access_token: {[Sequelize.Op.notIn] : exceptTokens} } });
                 resolve(true);
             } catch (error) {
                 reject(error); 
@@ -127,9 +127,9 @@ class AuthService {
         });
     }
 
-    getAccessToken(clientID, accessToken, refreshToken) {
+    getAccessToken(id, accessToken, refreshToken) {
         return new Promise(async (resolve, reject) => {
-            const query = { 'client_id': clientID,'access_token': accessToken, 'refresh_token': refreshToken, 'active': true }
+            const query = { 'user_id': clientID,'access_token': accessToken, 'refresh_token': refreshToken, 'active': true }
             const projection = { _id: 0, active: 1 }
             const options = { limit: 1 }
             TokenRecords.findOne(query, projection, options).exec(async (error, data) => {

@@ -62,9 +62,6 @@ AuthModels.ResetPasswordRecords = sequelize.define('reset_password_records', {
                 fields: ['token_expiry']
             },
             {
-                fields: ['token']
-            },
-            {
                 fields: ['token_sent_on']
             },
             {
@@ -81,8 +78,9 @@ AuthModels.ResetPasswordRecords = sequelize.define('reset_password_records', {
 
 /*********************** DB scema for access & refresh token records *************************/
 AuthModels.TokenRecords = sequelize.define('token_records', {
-    client_id: {
-        type: Sequelize.STRING,
+    user_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
     },
     access_token: {
         type: Sequelize.TEXT,
@@ -102,10 +100,7 @@ AuthModels.TokenRecords = sequelize.define('token_records', {
     tableName: 'token_records',
     indexes: [
         {
-            fields: ['client_id']
-        },
-        {
-            fields: ['access_token']
+            fields: ['user_id']
         },
         {
             fields: ['refresh_token']

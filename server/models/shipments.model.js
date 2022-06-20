@@ -55,6 +55,10 @@ ShipmentModels.Shipments = sequelize.define('shipments', {
     type: Sequelize.STRING,
     allowNull: false,
   },
+  boxes_details: {
+    type: Sequelize.TEXT,
+    allowNull: false,
+  },
   boxes_3kg: {
     type: Sequelize.STRING,
   },
@@ -69,9 +73,6 @@ ShipmentModels.Shipments = sequelize.define('shipments', {
   },
   boxes_custom: {
     type: Sequelize.STRING,
-  },
-  custom_box_dimentions: {
-    type: Sequelize.TEXT,
   },
   actual_weight: {
     type: Sequelize.FLOAT,

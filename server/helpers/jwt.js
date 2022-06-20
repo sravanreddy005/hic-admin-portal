@@ -67,12 +67,20 @@ module.exports.verifyJwtTokenWithoutExpiry = (req, res, next) => {
     if ('authorization' in req.headers){
         token = req.headers['authorization'].split(' ')[1];
     }
-    if (!token)
-        return res.status(401).send({ responseCode: 0, message: 'Authentication failed.' });
-    else {
+    if (!token){
+        if(req.refreshToken){
+            return res.status(403).send({ responseCode: 0, message: 'Permission Denied.' });
+        }else{
+            return res.status(401).send({ responseCode: 0, message: 'Authentication failed.' });
+        }        
+    }else {
         jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, {ignoreExpiration: true}, async(err, decoded) => {
                 if (err){
-                    return res.status(401).send({ responseCode: 0, message: 'Authentication failed.' });
+                    if(req.refreshToken){
+                        return res.status(403).send({ responseCode: 0, message: 'Permission Denied.' });
+                    }else{
+                        return res.status(401).send({ responseCode: 0, message: 'Authentication failed.' });
+                    }
                 }else{
                     const tokenData = JSON.parse(encryption.decryptData(decoded.data));
                     req.tokenData = tokenData;

@@ -687,9 +687,7 @@ class ResetPasswordComponent {
             this.token = urlParams.get('token');
             const decoded = (0,jwt_decode__WEBPACK_IMPORTED_MODULE_3__["default"])(this.token);
             const tokenDetails = decoded.data;
-            console.log('tokenDetails', tokenDetails);
             const currentTime = new Date().getTime();
-            console.log('currentTime', currentTime);
             if (!tokenDetails || (tokenDetails && tokenDetails.expiry < currentTime)) {
                 this.linkExpired = true;
             }
@@ -700,8 +698,6 @@ class ResetPasswordComponent {
         else {
             this.linkExpired = true;
         }
-        console.log('linkExpired', this.linkExpired);
-        console.log('success', this.success);
         this.resetForm = this.formBuilder.group({
             password: ['', [_angular_forms__WEBPACK_IMPORTED_MODULE_9__.Validators.required, _angular_forms__WEBPACK_IMPORTED_MODULE_9__.Validators.pattern(_helpers_regExp__WEBPACK_IMPORTED_MODULE_1__.passwordRegx)]],
             confirm_password: ['', [_angular_forms__WEBPACK_IMPORTED_MODULE_9__.Validators.required]]

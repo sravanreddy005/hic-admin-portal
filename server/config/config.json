@@ -5,13 +5,9 @@
         "MYSQL_HOST": "localhost",
         "JWT_SECRET": "Iw$h0pping$r@v@n5",
         "ACCESS_TOKEN_SECRET": "Iw@2a6a5ec97bf11244b687a230fc92f605ab15d605@$r@v@n5",
-        "ACCESS_TOKEN_EXPIRY": 180,
+        "ACCESS_TOKEN_EXPIRY": 120,
         "REFRESH_TOKEN_SECRET": "Iw@2fb7da97f804d446f98f4e121e0ece659a5c4e45@$r@v@n5",
         "REFRESH_TOKEN_EXPIRY": 43200,
-        "ACCESS_TOKEN_SECRET_HOTEL": "Iw@s5wbqfU7AToAyJlmsaZcQKICgTtmdOUA278OFZSh@$r@v@n5",
-        "ACCESS_TOKEN_EXPIRY_HOTEL": 180,
-        "REFRESH_TOKEN_SECRET_HOTEL": "Iw@5CQaSQbB73GeDdX78AHxcIa8gGDD4cjEnEkCEB1U@$r@v@n5",
-        "REFRESH_TOKEN_EXPIRY_HOTEL": 43200,
         "APP_URL": "http://localhost:4200",
         "LOG_FILE_NAME": "sample_ang_logs",
         "NO_OF_ALLOWED_LOGINS": 2
@@ -22,15 +18,11 @@
         "MYSQL_HOST": "localhost",
         "JWT_SECRET": "Iw$h0pping$r@v@n5",
         "ACCESS_TOKEN_SECRET": "Iw@2a6a5ec97bf11244b687a230fc92f605ab15d605@$r@v@n5",
-        "ACCESS_TOKEN_EXPIRY": 180,
+        "ACCESS_TOKEN_EXPIRY": 120,
         "REFRESH_TOKEN_SECRET": "Iw@2fb7da97f804d446f98f4e121e0ece659a5c4e45@$r@v@n5",
         "REFRESH_TOKEN_EXPIRY": 43200,
-        "ACCESS_TOKEN_SECRET_HOTEL": "Iw@s5wbqfU7AToAyJlmsaZcQKICgTtmdOUA278OFZSh@$r@v@n5",
-        "ACCESS_TOKEN_EXPIRY_HOTEL": 180,
-        "REFRESH_TOKEN_SECRET_HOTEL": "Iw@5CQaSQbB73GeDdX78AHxcIa8gGDD4cjEnEkCEB1U@$r@v@n5",
-        "REFRESH_TOKEN_EXPIRY_HOTEL": 43200,
         "APP_URL": "http://65.0.205.215:3000",
-        "LOG_FILE_NAME": "sample_ang_logs",
+        "LOG_FILE_NAME": "hic_admin_portal_logs",
         "NO_OF_ALLOWED_LOGINS": 2
     }
 }

@@ -1,7 +1,8 @@
 const Sequelize = require('sequelize');
+const jwt = require('jsonwebtoken');
 const encryption = require('../helpers/encryption');
 const { getOneAuthRecordFromDB, getAuthRecordsFromDB, addAuthRecordToDB, updateAuthRecordInDB, deleteAuthRecordInDB, addTokensRecord, expireTokenOldRecords, getAccessToken } = require('../services/AuthService');
-const { getOneRecordFromDB, getModulesByRole, getAdminByID, updateRecordInDB } = require('../services/AdminService');
+const { getOneRecordFromDB, getOneRecordWithJoinFromDB, updateRecordInDB } = require('../services/AdminService');
 const { TokenRecords } = require('../models/auth.model');
 const { passwordRegx, emailRegx } = require('../helpers/regExp');
 const { generateJWT, decodeJWT, generateHashSaltUsingString, generateAccessAndRefreshToken, validatePassword } = require('../helpers/common');
@@ -84,14 +85,14 @@ module.exports.getAccessAndRefreshTokens = (data, id) => {
             const encryptedData = encryption.encryptData(JSON.stringify(data));
             let tokens = await generateAccessAndRefreshToken(encryptedData);
             if(tokens && tokens.accessToken && tokens.refreshToken){
-                const activeTokenRecords = await getAuthRecordsFromDB('TokenRecords', { client_id: id, active: true }, ['access_token'], process.env.NO_OF_ALLOWED_LOGINS - 1);
+                const activeTokenRecords = await getAuthRecordsFromDB('TokenRecords', { user_id: id, active: true }, ['access_token'], process.env.NO_OF_ALLOWED_LOGINS - 1);
                 let expireResp = true;
                 if(activeTokenRecords && activeTokenRecords.length > 0){
                     expireResp = await expireTokenOldRecords(id, activeTokenRecords);
                 }
                 if(expireResp){
                     let tokenRecord = {
-                        client_id: id,
+                        user_id: id,
                         access_token: tokens.accessToken,
                         refresh_token: tokens.refreshToken,
                         active: 1
@@ -299,7 +300,7 @@ module.exports.logoutUser = async (req, res, next) => {
         if(req.jwtToken && req.tokenData){
             const token = req.jwtToken;
             const tokenData = req.tokenData;
-            let resp = await deleteAuthRecordInDB('TokenRecords', {client_id: tokenData.id, access_token: token});
+            let resp = await deleteAuthRecordInDB('TokenRecords', {user_id: tokenData.id, access_token: token});
             if(resp){
                 return res.status(200).json({responseCode: 1, message: "success"});
             }else{
@@ -312,56 +313,73 @@ module.exports.logoutUser = async (req, res, next) => {
     }
 }
 
-module.exports.getAccessToken = async (req, res, next) => {
+module.exports.refreshToken = async (req, res, next) => {
     try {
-        if(req.body.client && req.body.refreshToken){
+        if(req.body.id && req.body.refreshToken){
             var accessToken;
             if ('authorization' in req.headers){
                 accessToken = req.headers['authorization'].split(' ')[1];
                 if(accessToken){
-                    const tokenResp = await getAccessToken(req.body.client, accessToken, req.body.refreshToken);
-                    if(tokenResp && tokenResp.active === true){
-                        const userData = await getAdminByID(req.body.client);
-                        if(userData.active === true) {
-                            const features = await getModulesByRole(admin.role_id);
-                            let adminData = {
-                                _id: userData._id,
-                                email: userData.email,
-                                first_name: userData.first_name,
-                                last_name: userData.last_name,
-                                role_id: admin.role_id,
-                                isAdmin: true,
-                                access_modules: features.access_modules
-                            }
-                            const encryptedData = encryption.encryptData(JSON.stringify(adminData));
-                            let tokens = await generateAccessAndRefreshToken(encryptedData);
-                            if(tokens && tokens.accessToken && tokens.refreshToken){
-                                const expireResp = await expireTokenOldRecords(admin._id);
-                                if(expireResp){
-                                    let tokenRecord = new TokenRecords();
-                                    tokenRecord.client_id = admin._id;
-                                    tokenRecord.access_token = tokens.accessToken;
-                                    tokenRecord.refresh_token = tokens.refreshToken;
-                                    tokenRecord.created_at = new Date();
-                                    const tokenResp = await addTokensRecord(tokenRecord);
-                                    if(tokenResp){
+                    jwt.verify(req.body.refreshToken, process.env.REFRESH_TOKEN_SECRET, async(err, decoded) => {
+                        if (err){
+                            return res.status(403).send({ responseCode: 0, message: 'Permission Denied.' });
+                        }else {
+                            let whereData = {user_id: req.body.id, refresh_token: req.body.refreshToken, access_token: accessToken};
+                            const tokenResp = await getOneAuthRecordFromDB('TokenRecords', whereData);
+                            if(tokenResp && tokenResp.active === true){
+                                let includeData = [ 
+                                    { 
+                                        model: AdminModels.Roles, 
+                                        attributes: ["role_name", "role_type", "access_modules"], 
+                                        required: true, 
+                                    },
+                                    { 
+                                        model: AdminModels.Branches, 
+                                        attributes: ["branch_name", "branch_type", "active"], 
+                                        required: true, 
+                                    } 
+                                ]
+                                const adminResp = await getOneRecordWithJoinFromDB('Admin', {id: req.body.id}, includeData);
+                                if(adminResp.active === true && adminResp.branch.active === true){
+                                    let adminData = {
+                                        id: adminResp.id,
+                                        email: adminResp.email,
+                                        first_name: adminResp.first_name,
+                                        last_name: adminResp.last_name,
+                                        role_id: adminResp.role_id,
+                                        role_type: adminResp.role.role_type,
+                                        branch_id: adminResp.branch_id,
+                                        branch_type: adminResp.branch.branch_type,
+                                        branch_name: adminResp.branch.branch_name,
+                                        access_modules: adminResp.role.access_modules
+                                    }
+                                    let tokens = await this.getAccessAndRefreshTokens(adminData, adminResp.id);
+                                    if(tokens && tokens.accessToken && tokens.refreshToken){
                                         return res.status(200).json({
                                             responseCode: 1,
                                             message: "success",
                                             accessToken : tokens.accessToken,
                                             refreshToken : tokens.refreshToken
-                                        });
-                                    }
-                                }                                              
+                                        });                                              
+                                    }else{
+                                        return res.status(403).json({responseCode: 0, errorCode: 'iw1004', message: "Something went wrong ! Please try again"});
+                                    }                                    
+                                }else{
+                                    return res.status(403).json({responseCode: 0, errorCode: 'iw1006', message: "Your account has inactivated ! Please contact administrator."});
+                                }
+                            }else{
+                                return res.status(403).json({responseCode: 0, message: "Permission Denied."});
                             }
-                        }
-                    }else{
-                        return res.status(200).json({responseCode: 0, errorCode: 'iw1008', message: "Invalid Token"});
-                    }
+                        }                       
+                    });
+                }else{
+                    return res.status(403).json({responseCode: 0, message: "Permission Denied."});
                 }
+            }else{
+                return res.status(403).json({responseCode: 0, message: "Permission Denied."});
             }
         }
-        return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
+        
     } catch (err) {
         return next(err);
     }

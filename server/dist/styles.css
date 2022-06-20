@@ -39784,5 +39784,21 @@ h6 {
   font-size: 0.775rem !important;
   line-height: 0.5 !important;
 }
+.boxes_details .control-label {
+  font-size: 12px !important;
+}
+.form-control {
+  font-size: 0.8rem !important;
+}
+.boxes_details .form-control {
+  font-size: 0.8rem !important;
+}
+.ng-select-container {
+  min-height: 33px !important;
+  height: 33px !important;
+}
+.ng-value-container {
+  font-size: 13px !important;
+}
 
 /*# sourceMappingURL=styles.css.map*/

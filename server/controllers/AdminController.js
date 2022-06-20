@@ -311,7 +311,7 @@ module.exports.createAdmin = async (req, res, next) => {
                             },
                             {
                                 "type": "text",
-                                "text": email
+                                "text": email.toLowerCase()
                             },
                             {
                                 "type": "text",

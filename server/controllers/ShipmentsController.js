@@ -40,7 +40,7 @@ const {
             reqBody.product_type &&
             reqBody.basic_amount && validateData('float', reqBody.basic_amount) &&
             reqBody.total_amount && validateData('float', reqBody.total_amount) &&
-            reqBody.mode_of_payment && validateData('alpha', reqBody.mode_of_payment) &&            
+            reqBody.mode_of_payment &&            
             reqBody.sender_name && validateData('alnumSpecial', reqBody.sender_name) &&
             reqBody.sender_address1 && validateData('nonHTML', reqBody.sender_address1) &&
             reqBody.sender_pincode && validateData('pincode', reqBody.sender_pincode) &&
@@ -54,9 +54,15 @@ const {
             reqBody.commodity_list &&
             reqBody.commodity_items_summery
         ){
-            if(reqBody.mode_of_payment !== 'CASH' && (!reqBody.transaction_id || validateData('nonHTML', reqBody.transaction_id))){
+            if(reqBody.mode_of_payment !== 'CASH' && !reqBody.transaction_id){
                 return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
             }
+            let boxesDetails = JSON.parse(reqBody.boxes_details);
+            let boxes3kgCount = boxesDetails.filter(data => data.box_weight === '3KG').length;
+            let boxes5kgCount = boxesDetails.filter(data => data.box_weight === '5KG').length;
+            let boxes10kgCount = boxesDetails.filter(data => data.box_weight === '10KG').length;
+            let boxes15kgCount = boxesDetails.filter(data => data.box_weight === '15KG').length;
+            let boxesCustomCount = boxesDetails.filter(data => data.box_weight === 'CUSTOM').length;
             let data = {
                 branch_id: reqBody.branch,
                 invoice_number: reqBody.invoice_number,
@@ -65,12 +71,12 @@ const {
                 service_type: reqBody.service_type,
                 destination_country: reqBody.destination_country,
                 no_of_pieces: reqBody.no_of_pieces,
-                boxes_3kg: reqBody.boxes_3kg ? reqBody.boxes_3kg : 0,
-                boxes_5kg: reqBody.boxes_5kg ? reqBody.boxes_5kg : 0,
-                boxes_10kg: reqBody.boxes_10kg ? reqBody.boxes_10kg : 0,
-                boxes_15kg: reqBody.boxes_15kg ? reqBody.boxes_15kg : 0,
-                boxes_custom: reqBody.boxes_custom ? reqBody.boxes_custom : 0,
-                custom_box_dimentions: reqBody.custom_box_dimentions ? reqBody.custom_box_dimentions : '',
+                boxes_details: reqBody.boxes_details,
+                boxes_3kg: boxes3kgCount ? boxes3kgCount : 0,
+                boxes_5kg: boxes5kgCount ? boxes5kgCount : 0,
+                boxes_10kg: boxes10kgCount ? boxes10kgCount : 0,
+                boxes_15kg: boxes15kgCount ? boxes15kgCount : 0,
+                boxes_custom: boxesCustomCount ? boxesCustomCount : 0,
                 actual_weight: reqBody.actual_weight,
                 valumetric_weight: reqBody.valumetric_weight,
                 chargable_weight: reqBody.chargable_weight, 
@@ -82,33 +88,33 @@ const {
                 total_amount: reqBody.total_amount,
                 mode_of_payment: reqBody.mode_of_payment,
                 transaction_id: reqBody.transaction_id ? reqBody.transaction_id : '',
-                sender_name: reqBody.sender_name,
-                sender_company_name: reqBody.sender_company_name ? reqBody.sender_company_name : '',
-                sender_address1: reqBody.sender_address1,
-                sender_address2: reqBody.sender_address2,
-                sender_address3: reqBody.sender_address3 ? reqBody.sender_address3 : '',
+                sender_name: (reqBody.sender_name).toUpperCase(),
+                sender_company_name: reqBody.sender_company_name ? (reqBody.sender_company_name).toUpperCase() : '',
+                sender_address1: (reqBody.sender_address1).toUpperCase(),
+                sender_address2: (reqBody.sender_address2).toUpperCase(),
+                sender_address3: reqBody.sender_address3 ? (reqBody.sender_address3).toUpperCase() : '',
                 sender_pincode: reqBody.sender_pincode,
                 sender_country: 'IN',
-                sender_state: reqBody.sender_state,
-                sender_city: reqBody.sender_city,
+                sender_state: (reqBody.sender_state).toUpperCase(),
+                sender_city: (reqBody.sender_city).toUpperCase(),
                 sender_phone_number: reqBody.sender_phone_number,
-                sender_email: reqBody.sender_email ? reqBody.sender_email : '',
-                sender_id_proof_type: reqBody.sender_id_proof_type,
-                sender_id_proof_number: reqBody.sender_id_proof_number,
-                receiver_name: reqBody.receiver_name,
-                receiver_company_name: reqBody.receiver_company_name ? reqBody.receiver_company_name : '',
-                receiver_address1: reqBody.receiver_address1,
-                receiver_address2: reqBody.receiver_address2,
-                receiver_address3: reqBody.receiver_address3 ? reqBody.receiver_address3 : '',
+                sender_email: reqBody.sender_email ? (reqBody.sender_email).toUpperCase() : '',
+                sender_id_proof_type: (reqBody.sender_id_proof_type).toUpperCase(),
+                sender_id_proof_number: (reqBody.sender_id_proof_number).toUpperCase(),
+                receiver_name: (reqBody.receiver_name).toUpperCase(),
+                receiver_company_name: reqBody.receiver_company_name ? (reqBody.receiver_company_name).toUpperCase() : '',
+                receiver_address1: (reqBody.receiver_address1).toUpperCase(),
+                receiver_address2: (reqBody.receiver_address2).toUpperCase(),
+                receiver_address3: reqBody.receiver_address3 ? (reqBody.receiver_address3).toUpperCase() : '',
                 receiver_pincode: reqBody.receiver_pincode,
-                receiver_country: reqBody.destination_country,
-                receiver_state: reqBody.receiver_state,
-                receiver_city: reqBody.receiver_city,
+                receiver_country: (reqBody.destination_country).toUpperCase(),
+                receiver_state: (reqBody.receiver_state).toUpperCase(),
+                receiver_city: (reqBody.receiver_city).toUpperCase(),
                 receiver_phone_number: reqBody.receiver_phone_number,
-                receiver_email: reqBody.receiver_email ? reqBody.receiver_email : '',
+                receiver_email: reqBody.receiver_email ? (reqBody.receiver_email).toUpperCase() : '',
                 commodity_list: reqBody.commodity_list,
-                commodity_items_summery: reqBody.commodity_items_summery,
-                remarks: reqBody.remarks ? reqBody.remarks : '',
+                commodity_items_summery: (reqBody.commodity_items_summery).toUpperCase(),
+                remarks: reqBody.remarks ? (reqBody.remarks).toUpperCase() : '',
                 status: 1
             }
             if(req.files.kyc_files){
@@ -157,7 +163,7 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
             reqBody.product_type &&
             reqBody.basic_amount && validateData('float', reqBody.basic_amount) &&
             reqBody.total_amount && validateData('float', reqBody.total_amount) &&
-            reqBody.mode_of_payment && validateData('alpha', reqBody.mode_of_payment) &&
+            reqBody.mode_of_payment &&
             reqBody.sender_name && validateData('alnumSpecial', reqBody.sender_name) &&
             reqBody.sender_address1 && validateData('nonHTML', reqBody.sender_address1) &&
             reqBody.sender_pincode && validateData('pincode', reqBody.sender_pincode) &&
@@ -171,7 +177,7 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
             reqBody.commodity_list &&
             reqBody.commodity_items_summery
         ){
-            if(reqBody.mode_of_payment !== 'CASH' && (!reqBody.transaction_id || validateData('nonHTML', reqBody.transaction_id))){
+            if(reqBody.mode_of_payment !== 'CASH' && !reqBody.transaction_id){
                 return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
             }
             let shipmentsDetails = await getOneShipmentsModelRecordFromDB('Shipments', {id: reqBody.id});
@@ -189,43 +195,49 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
                         tracking_no2: reqBody.tracking_no2 ? reqBody.tracking_no2 : '',
                         tracking_no3: reqBody.tracking_no3 ? reqBody.tracking_no3 : '',
                         tracking_no4: reqBody.tracking_no4 ? reqBody.tracking_no4 : '',
-                        sender_name: reqBody.sender_name,
-                        sender_company_name: reqBody.sender_company_name ? reqBody.sender_company_name : '',
-                        sender_address1: reqBody.sender_address1,
-                        sender_address2: reqBody.sender_address2,
-                        sender_address3: reqBody.sender_address3 ? reqBody.sender_address3 : '',
+                        sender_name: (reqBody.sender_name).toUpperCase(),
+                        sender_company_name: reqBody.sender_company_name ? (reqBody.sender_company_name).toUpperCase() : '',
+                        sender_address1: (reqBody.sender_address1).toUpperCase(),
+                        sender_address2: (reqBody.sender_address2).toUpperCase(),
+                        sender_address3: reqBody.sender_address3 ? (reqBody.sender_address3).toUpperCase() : '',
                         sender_pincode: reqBody.sender_pincode,
                         sender_country: 'IN',
-                        sender_state: reqBody.sender_state,
-                        sender_city: reqBody.sender_city,
+                        sender_state: (reqBody.sender_state).toUpperCase(),
+                        sender_city: (reqBody.sender_city).toUpperCase(),
                         sender_phone_number: reqBody.sender_phone_number,
-                        sender_email: reqBody.sender_email ? reqBody.sender_email : '',
-                        sender_id_proof_type: reqBody.sender_id_proof_type,
-                        sender_id_proof_number: reqBody.sender_id_proof_number,
-                        receiver_name: reqBody.receiver_name,
-                        receiver_company_name: reqBody.receiver_company_name ? reqBody.receiver_company_name : '',
-                        receiver_address1: reqBody.receiver_address1,
-                        receiver_address2: reqBody.receiver_address2,
-                        receiver_address3: reqBody.receiver_address3 ? reqBody.receiver_address3 : '',
+                        sender_email: reqBody.sender_email ? (reqBody.sender_email).toUpperCase() : '',
+                        sender_id_proof_type: (reqBody.sender_id_proof_type).toUpperCase(),
+                        sender_id_proof_number: (reqBody.sender_id_proof_number).toUpperCase(),
+                        receiver_name: (reqBody.receiver_name).toUpperCase(),
+                        receiver_company_name: reqBody.receiver_company_name ? (reqBody.receiver_company_name).toUpperCase() : '',
+                        receiver_address1: (reqBody.receiver_address1).toUpperCase(),
+                        receiver_address2: (reqBody.receiver_address2).toUpperCase(),
+                        receiver_address3: reqBody.receiver_address3 ? (reqBody.receiver_address3).toUpperCase() : '',
                         receiver_pincode: reqBody.receiver_pincode,
-                        receiver_country: reqBody.destination_country,
-                        receiver_state: reqBody.receiver_state,
-                        receiver_city: reqBody.receiver_city,
+                        receiver_country: (reqBody.destination_country).toUpperCase(),
+                        receiver_state: (reqBody.receiver_state).toUpperCase(),
+                        receiver_city: (reqBody.receiver_city).toUpperCase(),
                         receiver_phone_number: reqBody.receiver_phone_number,
-                        receiver_email: reqBody.receiver_email ? reqBody.receiver_email : '',
-                        remarks: reqBody.remarks ? reqBody.remarks : ''
+                        receiver_email: reqBody.receiver_email ? (reqBody.receiver_email).toUpperCase() : '',
+                        remarks: reqBody.remarks ? (reqBody.remarks).toUpperCase() : ''
                     }
                     let data2 = {};
                     if(req.tokenData.role_type === 'Super-Admin'){
+                        let boxesDetails = reqBody.boxes_details;
+                        let boxes3kgCount = boxesDetails.filter(data => data.box_weight === '3KG').length;
+                        let boxes5kgCount = boxesDetails.filter(data => data.box_weight === '5KG').length;
+                        let boxes10kgCount = boxesDetails.filter(data => data.box_weight === '10KG').length;
+                        let boxes15kgCount = boxesDetails.filter(data => data.box_weight === '15KG').length;
+                        let boxesCustomCount = boxesDetails.filter(data => data.box_weight === 'CUSTOM').length;
                         data2 = {
                             branch_id: reqBody.branch,
                             no_of_pieces: reqBody.no_of_pieces,
-                            boxes_3kg: reqBody.boxes_3kg ? reqBody.boxes_3kg : 0,
-                            boxes_5kg: reqBody.boxes_5kg ? reqBody.boxes_5kg : 0,
-                            boxes_10kg: reqBody.boxes_10kg ? reqBody.boxes_10kg : 0,
-                            boxes_15kg: reqBody.boxes_15kg ? reqBody.boxes_15kg : 0,
-                            boxes_custom: reqBody.boxes_custom ? reqBody.boxes_custom : 0,
-                            custom_box_dimentions: reqBody.custom_box_dimentions ? reqBody.custom_box_dimentions : '',
+                            boxes_details: JSON.stringify(reqBody.boxes_details),
+                            boxes_3kg: boxes3kgCount ? boxes3kgCount : 0,
+                            boxes_5kg: boxes5kgCount ? boxes5kgCount : 0,
+                            boxes_10kg: boxes10kgCount ? boxes10kgCount : 0,
+                            boxes_15kg: boxes15kgCount ? boxes15kgCount : 0,
+                            boxes_custom: boxesCustomCount ? boxesCustomCount : 0,
                             actual_weight: reqBody.actual_weight,
                             valumetric_weight: reqBody.valumetric_weight,
                             chargable_weight: reqBody.chargable_weight, 
@@ -238,7 +250,7 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
                             mode_of_payment: reqBody.mode_of_payment,
                             transaction_id: reqBody.transaction_id ? reqBody.transaction_id : '',                            
                             commodity_list: JSON.stringify(reqBody.commodity_list),
-                            commodity_items_summery: reqBody.commodity_items_summery
+                            commodity_items_summery: (reqBody.commodity_items_summery).toUpperCase()
                         }
                     }
                     let data = {...data1, ...data2};
@@ -471,24 +483,40 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
         ){
             let data = {
                 tracking_no1: reqBody.tracking_no1,
-                tracking_no2: reqBody.tracking_no2 ? reqBody.tracking_no2 : '',
-                tracking_no3: reqBody.tracking_no3 ? reqBody.tracking_no3 : '',
-                tracking_no4: reqBody.tracking_no4 ? reqBody.tracking_no4 : '',
+                tracking_no2: reqBody.tracking_no2 ? reqBody.tracking_no2 : null,
+                tracking_no3: reqBody.tracking_no3 ? reqBody.tracking_no3 : null,
+                tracking_no4: reqBody.tracking_no4 ? reqBody.tracking_no4 : null,
             }
             const resp = await updateShipmentsModelRecordInDB('Shipments', data, {id: reqBody.id});
             if(resp){
                 let whereData = {id: req.body.id};
-                let attributes = ['sender_phone_number'];
+                let attributes = ['sender_phone_number','invoice_number','no_of_pieces','chargable_weight','total_amount'];
                 let resp = await getOneShipmentsModelRecordWithAttributesFromDB('Shipments', whereData, attributes);
                 if(resp && resp.sender_phone_number){
                     let template = {
-                        name: 'shipment_update',
+                        name: 'shipping_update',
                         components: [{
                             type: 'body',
                             parameters: [
                                 {
                                     "type": "text",
-                                    "text": reqBody.tracking_no1
+                                    "text": (resp.invoice_number).toString()
+                                },
+                                {
+                                    "type": "text",
+                                    "text": (resp.no_of_pieces).toString()
+                                },
+                                {
+                                    "type": "text",
+                                    "text": (resp.chargable_weight).toString()
+                                },
+                                {
+                                    "type": "text",
+                                    "text": (resp.total_amount).toString()
+                                },
+                                {
+                                    "type": "text",
+                                    "text": (reqBody.tracking_no1).toString()
                                 }
                             ]
                         }],
