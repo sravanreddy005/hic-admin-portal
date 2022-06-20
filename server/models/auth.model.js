@@ -87,7 +87,7 @@ AuthModels.TokenRecords = sequelize.define('token_records', {
         allowNull: false,
     },
     refresh_token: {
-        type: Sequelize.TEXT,
+        type: Sequelize.STRING,
         allowNull: false,
     },
     active: {
