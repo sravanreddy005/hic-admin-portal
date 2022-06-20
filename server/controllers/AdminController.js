@@ -1716,40 +1716,13 @@ module.exports.generateInvoicePDF = async (req, res, next) => {
     try {
         let shipmentData = req.body.data;
         // Read source template
-        const source = await read(`./server/uploads/invoices/invoive-template.html`, 'utf-8');
+        const source = await read(`./server/uploads/invoices/invoice-template.html`, 'utf-8');
         let commodityList = JSON.parse(shipmentData.commodity_list);        
-        let boxes_3kg = parseInt(shipmentData.boxes_3kg);
-        let boxes_5kg = parseInt(shipmentData.boxes_5kg);
-        let boxes_10kg = parseInt(shipmentData.boxes_10kg);
-        let boxes_15kg = parseInt(shipmentData.boxes_15kg);
-        let boxes_custom = parseInt(shipmentData.boxes_custom);
+        let boxesDetails = JSON.parse(shipmentData.boxes_details);
         let boxDimentions = [];
-        if(boxes_3kg > 0){            
-            for(let i=0; i<boxes_3kg; i++ ){
-                boxDimentions.push('30*21*21');
-            };
-        }
-        if(boxes_5kg > 0){
-            for(let i=0; i<boxes_5kg; i++ ){
-                boxDimentions.push('36*26*26');
-            };
-        }
-        if(boxes_10kg > 0){
-            for(let i=0; i<boxes_10kg; i++ ){
-                boxDimentions.push('40*35*35');
-            };
-        }
-        if(boxes_15kg > 0){
-            for(let i=0; i<boxes_15kg; i++ ){
-                boxDimentions.push('60*35*35');
-            };
-        }
-        if(boxes_custom > 0){
-            let customBoxDimentions = (shipmentData.custom_box_dimentions).split(',');
-            customBoxDimentions.map((data) => {
-                boxDimentions.push(data);
-            });
-        }
+        boxesDetails.map(data => {
+            boxDimentions.push(`${data.width}*${data.length}*${data.height}`);
+        });        
         let data = {
             ...shipmentData,
             date : await formatDate(shipmentData.date, 'dd-mm-yyyy'),

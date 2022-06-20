@@ -11,7 +11,7 @@ require('./config/config');
 require('./database');
 
 const winston = require('./helpers/winston');
-const morgan = require('morgan');
+const morgan = require('morgan'); 
 
 const adminRoutes = require('./routes/admin');
 const authRoutes = require('./routes/auth');
@@ -19,7 +19,7 @@ const authRoutes = require('./routes/auth');
 // Rate Limiting
 const limit = rateLimit({
     max: 100,// max requests
-    windowMs: 60 * 60 * 1000, // 1 Hour of 'ban' / lockout
+    windowMs: 60 * 60 * 1000, // 1 Hour of 'ban' / lockout 
     message: 'Too many requests' // message to send
 });
 
@@ -47,7 +47,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api', adminRoutes);
 
 app.get('*', (req, res) => {
-   res.sendFile(path.join(__dirname, 'dist/index.html'));
+    res.sendFile(path.join(__dirname, 'dist/index.html'));
 });
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -57,7 +57,7 @@ winston.stream = {
       winston.info(message);
     }
 };
-
+  
 app.use(morgan(':remote-addr :remote-user [:date[iso]] :method :url :status - :response-time ms ":referrer" ":user-agent"', {
 "stream": winston.stream
 }));
