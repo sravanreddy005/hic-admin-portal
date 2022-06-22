@@ -4,10 +4,8 @@ const { AdminModels } = require('../database');
 const { validateUserLogin, getAccessAndRefreshTokens } = require('./AuthController');
 const { getShipmentData } = require('./ShipmentsController');
 const { validateData, generatePasswordHashSalt, generateHashSaltUsingString, stringToSlug, genarateAccessToken } = require('../helpers/common');
-// const { sendMail } = require('../helpers/email');
-const { sendWhatsappMessage, amountInwords, formatDate, getSumByKey } = require('../helpers/common');
+const { sendWhatsappMessage, amountInwords, formatDate, getSumByKey, parseExcel } = require('../helpers/common');
 const { passwordRegx, alnumRegx } = require('../helpers/regExp');
-const csv = require('csv-parser');
 const fs = require('fs');
 const Op = Sequelize.Op;
 
@@ -461,6 +459,69 @@ module.exports.updateAdminStatus = async (req, res, next) => {
     }catch (err) {
         winston.info({ 'AdminController:: Exception occured in updateAdminStatus method': err.message });
         return next(err);
+    }
+}
+
+/**
+ * generating user password
+ */
+ module.exports.generateUserPassword = async (req, res, next) => {
+    try {
+        const reqData = req.body;
+        if(reqData && reqData.id){
+            let adminData = await getOneRecordFromDB('Admin', {id: reqData.id});
+            if(adminData && adminData.mobile_number){
+                const passwordObj = await generatePasswordHashSalt();
+                let data = {
+                    salt: passwordObj.salt,
+                    hash: passwordObj.hash,
+                }
+                const resp = await updateRecordInDB('Admin', data, {id: reqData.id});
+                if(resp){    
+                    let template = {
+                        name: 'account_credentials',
+                        components: [{
+                            type: 'body',
+                            parameters: [
+                                {
+                                    "type": "text",
+                                    "text": adminData.first_name
+                                },
+                                {
+                                    "type": "text",
+                                    "text": (adminData.email).toLowerCase()
+                                },
+                                {
+                                    "type": "text",
+                                    "text": passwordObj.password
+                                },
+                                {
+                                    "type": "text",
+                                    "text": process.env.APP_URL + '/auth/login'
+                                }
+                            ]
+                        }],
+                        language: {code: 'en_US'}
+                    };
+                    let message = await sendWhatsappMessage(`91${adminData.mobile_number}`, template);
+    
+                    res.status(200).json({responseCode: 1, message: "Password generated successfully"});   
+                }else{
+                    res.status(200).json({responseCode: 0, message: "Password generating has failed"}); 
+                }
+            }else{
+                res.status(400).json({responseCode: 0, errorCode: 'iw1003', message : "Bad Request"});
+            }             
+        }else{
+            res.status(400).json({responseCode: 0, errorCode: 'iw1003', message : "Bad Request"});
+        }    
+    }catch (err) {
+        winston.info({ 'AdminController:: Exception occured in generateUserPassword method': err.message });
+        if (err.name == 'SequelizeUniqueConstraintError'){
+            res.status(409).json({responseCode: 0, errorCode: 'iw1005', message : "User already exists with this email"});
+        }else{            
+            return next(err);
+        }
     }
 }
 
@@ -990,27 +1051,25 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
     try {
         if(req.files){
             let dataArray = [];
-            fs.createReadStream(`./server/uploads/commodity-list/${req.files['commodity_file'][0]['filename']}`).pipe(csv())
-            .on('data', (data) => {
-                const reqData = {
-                    product_name : data.ProductName,
-                    hsn_code: data.HSNCode
+            let filePath = `./server/uploads/commodity-list/${req.files['commodity_file'][0]['filename']}`;
+            const fileData = await parseExcel(filePath);
+            fileData.map(data => {
+                if(data.ProductName && data.HSNCode){
+                    const reqData = {
+                        product_name : data.ProductName,
+                        hsn_code: data.HSNCode
+                    }
+                    dataArray.push(reqData);
                 }
-                dataArray.push(reqData);
-            })
-            .on('end', async() => {
-                let resp = await addBulkRecordsToDB(dataArray, 'Commodities', true);
-                try {
-                    fs.unlinkSync(`./server/uploads/commodity-list/${req.files['commodity_file'][0]['filename']}`);
-                } catch (error) {
-                    winston.info({ 'AdminController:: Exception occured while unlink file in uploadCommodities method': error.message });
-                } 
+            });
+            if(dataArray.length > 0){
+                let resp = await addBulkRecordsToDB(dataArray, 'Commodities', true); 
                 if(resp){
                     return res.status(200).json({responseCode: 1, message: "success"});
                 } else {
                     return res.status(200).json({responseCode: 0, message: "failure"});
-                }                           
-            });           
+                }
+            }           
         }else{
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }                

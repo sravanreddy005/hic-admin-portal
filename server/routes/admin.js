@@ -35,6 +35,7 @@ router.post('/createUser', jwt.verifyAdminJwtTokenWithAccess('users', 'edit'), A
 router.post('/getUsersList', jwt.verifyAdminJwtTokenWithAccess('users', 'view'), AdminController.getAdminsList);
 router.post('/getUsersCount', jwt.verifyAdminJwtToken, AdminController.getUsersCount);
 router.post('/updateUser', jwt.verifyAdminJwtTokenWithAccess('users', 'edit'), AdminController.updateAdmin);
+router.post('/generateUserPassword', jwt.verifyAdminJwtTokenWithAccess('users', 'edit'), AdminController.generateUserPassword);
 router.post('/updateUserStatus', jwt.verifyAdminJwtTokenWithAccess('users', 'edit'), AdminController.updateAdminStatus);
 router.post('/deleteUser', jwt.verifyAdminJwtTokenWithAccess('users', 'delete'), AdminController.deleteAdmin);
 

@@ -1,6 +1,4 @@
-const { validateData } = require('../helpers/common');
-const csv = require('csv-parser');
-const fs = require('fs');
+const { validateData, parseExcel } = require('../helpers/common');
 const winston = require('../helpers/winston');
 
 const {  
@@ -17,20 +15,24 @@ const {
 module.exports.uploadCountries = async (req, res, next) => {
     try {        
         let countriesArray = [];
-        fs.createReadStream('./server/uploads/countries_csv.csv').pipe(csv())
-        .on('data', (data) => {
-            const countryData = {
-                country_name : data.Name,
-                country_code: data.Code,
+        let filePath = './server/uploads/countries_csv.csv';
+        const fileData = await parseExcel(filePath);
+        fileData.map(data => {
+            if(data.CountryName && data.CountryCode && data.Zone){
+                const countryData = {
+                    country_name : data.Name,
+                    country_code: data.Code,
+                }
+                countriesArray.push(countryData);
             }
-            countriesArray.push(countryData);
-        })
-        .on('end', async() => {
-            await addPricesModelRecordToDB(countriesArray);              
-            res.status(200).json({responseCode: 1, message: "success"});          
         });
+        if(countriesArray.length > 0){
+            await addPricesModelRecordToDB(countriesArray);              
+            res.status(200).json({responseCode: 1, message: "success"});
+        }
     }catch (err) {
-        return next(err);
+        winston.info({ 'PricesController:: Exception occured in uploadCountries method': err.message });
+        return next(err);        
     }
 }
 
@@ -61,7 +63,8 @@ module.exports.uploadCountries = async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }                
     }catch (err) {
-        if (err.code == 11000){
+        winston.info({ 'PricesController:: Exception occured in addCountries method': err.message });
+        if (err.name == 'SequelizeUniqueConstraintError'){
             res.status(409).json({responseCode: 0, errorCode: 'iw1005', message : " Country already exists with this name/code"});
         }else{
             return next(err);
@@ -77,6 +80,7 @@ module.exports.uploadCountries = async (req, res, next) => {
         let countriesResp = await getPricesModelRecordsFromDB('Countries');
         return res.status(200).json({responseCode: 1,message: "success", countries: countriesResp});        
     }catch (err) {
+        winston.info({ 'PricesController:: Exception occured in getCountries method': err.message });
         return next(err);
     }
 }
@@ -123,6 +127,7 @@ module.exports.uploadCountries = async (req, res, next) => {
         }        
         return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
     }catch (err) {
+        winston.info({ 'PricesController:: Exception occured in updateCountries method': err.message });
         return next(err);
     }
 }
@@ -143,6 +148,7 @@ module.exports.uploadCountries = async (req, res, next) => {
         }
         return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
     }catch (err) {
+        winston.info({ 'PricesController:: Exception occured in deleteCountries method': err.message });
         return next(err);
     }
 }
@@ -174,7 +180,8 @@ module.exports.uploadCountries = async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }                
     }catch (err) {
-        if (err.code == 11000){
+        winston.info({ 'PricesController:: Exception occured in addCarrier method': err.message });
+        if (err.name == 'SequelizeUniqueConstraintError'){
             res.status(409).json({responseCode: 0, errorCode: 'iw1005', message : "Carrier already exists with this name/code"});
         }else{
             return next(err);
@@ -190,6 +197,7 @@ module.exports.uploadCountries = async (req, res, next) => {
         let resp = await getPricesModelRecordsFromDB('Carriers');
         return res.status(200).json({responseCode: 1,message: "success", carriers: resp});        
     }catch (err) {
+        winston.info({ 'PricesController:: Exception occured in getCarriers method': err.message });
         return next(err);
     }
 }
@@ -218,6 +226,7 @@ module.exports.uploadCountries = async (req, res, next) => {
         }        
         return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
     }catch (err) {
+        winston.info({ 'PricesController:: Exception occured in updateCarrier method': err.message });
         return next(err);
     }
 }
@@ -238,6 +247,7 @@ module.exports.uploadCountries = async (req, res, next) => {
         }
         return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
     }catch (err) {
+        winston.info({ 'PricesController:: Exception occured in deleteCarrier method': err.message });
         return next(err);
     }
 }
@@ -277,7 +287,8 @@ module.exports.uploadCountries = async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }                
     }catch (err) {
-        if (err.code == 11000){
+        winston.info({ 'PricesController:: Exception occured in addCarrierZone method': err.message });
+        if (err.name == 'SequelizeUniqueConstraintError'){
             res.status(409).json({responseCode: 0, errorCode: 'iw1005', message : "Carrier zone already exists with this name/code"});
         }else{
             return next(err);
@@ -297,34 +308,35 @@ module.exports.uploadCountries = async (req, res, next) => {
             req.files
         ){
             let zonesArray = [];
-            fs.createReadStream(`./server/uploads/carrier-zones/${req.files['carrier_zones_file'][0]['filename']}`).pipe(csv())
-            .on('data', (data) => {
-                const countryData = {
-                    country_name : data.CountryName,
-                    country_code: data.CountryCode,
-                    zone: data.Zone,
-                    carrier_id: reqBody.carrier_id,
+            let filePath = `./server/uploads/carrier-zones/${req.files['carrier_zones_file'][0]['filename']}`;
+            const fileData = await parseExcel(filePath);
+            fileData.map(data => {
+                if(data.CountryName && data.CountryCode && data.Zone){
+                    const countryData = {
+                        country_name : data.CountryName,
+                        country_code: data.CountryCode,
+                        zone: data.Zone,
+                        carrier_id: reqBody.carrier_id,
+                    }
+                    zonesArray.push(countryData);
                 }
-                zonesArray.push(countryData);
-            })
-            .on('end', async() => {                
-                let resp = await addPricesModelRecordToDB(zonesArray, 'CarrierCountryZones', true); 
-                try {
-                    fs.unlinkSync(`./server/uploads/carrier-zones/${req.files['carrier_zones_file'][0]['filename']}`);
-                } catch (error) {
-                    winston.info({ 'PricesController:: Exception occured while unlink file in uploadCarrierZones method': error.message });
-                }                
+            }); 
+            if(zonesArray.length > 0){
+                let resp = await addPricesModelRecordToDB(zonesArray, 'CarrierCountryZones', true);            
                 if(resp){
                     return res.status(200).json({responseCode: 1, message: "success"});
-                } else {
+                }else {
                     return res.status(200).json({responseCode: 0, message: "failure"});
-                }                           
-            });           
+                }  
+            }else {
+                return res.status(200).json({responseCode: 0, message: "failure"});
+            }      
         }else{
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }                
     }catch (err) {
-        if (err.code == 11000){
+        winston.info({ 'PricesController:: Exception occured in uploadCarrierZones method': err.message });
+        if (err.name == 'SequelizeUniqueConstraintError'){
             res.status(409).json({responseCode: 0, errorCode: 'iw1005', message : "Carrier zone already exists with this name/code"});
         }else{
             return next(err);
@@ -344,6 +356,7 @@ module.exports.uploadCountries = async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }        
     }catch (err) {
+        winston.info({ 'PricesController:: Exception occured in getCarrierZones method': err.message });
         return next(err);
     }
 }
@@ -380,6 +393,7 @@ module.exports.uploadCountries = async (req, res, next) => {
         }        
         return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
     }catch (err) {
+        winston.info({ 'PricesController:: Exception occured in updateCarrierZone method': err.message });
         return next(err);
     }
 }
@@ -400,6 +414,7 @@ module.exports.uploadCountries = async (req, res, next) => {
         }
         return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
     }catch (err) {
+        winston.info({ 'PricesController:: Exception occured in deleteCarrierZone method': err.message });
         return next(err);
     }
 }
@@ -420,6 +435,7 @@ module.exports.uploadCountries = async (req, res, next) => {
         }
         return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
     }catch (err) {
+        winston.info({ 'PricesController:: Exception occured in deleteAllCarrierZones method': err.message });
         return next(err);
     }
 }
@@ -462,7 +478,8 @@ module.exports.uploadCountries = async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }                
     }catch (err) {
-        if (err.code == 11000){
+        winston.info({ 'PricesController:: Exception occured in addPrice method': err.message });
+        if (err.name == 'SequelizeUniqueConstraintError'){
             res.status(409).json({responseCode: 0, errorCode: 'iw1005', message : "This prices already exists"});
         }else{
             return next(err);
@@ -484,60 +501,59 @@ module.exports.uploadCountries = async (req, res, next) => {
             let pricesArray = [];
             let prices = [];
             let i = 0;
-            fs.createReadStream(`./server/uploads/prices/${req.files['prices_file'][0]['filename']}`).pipe(csv())
-            .on('data', (data) => { 
-                prices.push(data)               
-                let weightValue = (prices[i].Weight).replace(/\s/g, '');
-                let weight;
-                let weightFrom;
-                let weightTo;
-                if(weightValue.includes('-')){
-                    weight = weightValue.split('-');
-                    weightFrom = weight[0];
-                    weightTo = weight[1];
-                }else if(weightValue.includes('to')){
-                    weight = weightValue.split('to');
-                    weightFrom = weight[0];
-                    weightTo = weight[1];
-                }else{
-                    if(i === 0){
-                        weightFrom = 0.1;
+            let filePath = `./server/uploads/prices/${req.files['prices_file'][0]['filename']}`;
+            const fileData = await parseExcel(filePath);
+            fileData.map(data => {
+                if(data.Weight){
+                    prices.push(data);              
+                    let weightValue = (prices[i].Weight).toString().replace(/\s/g, '');
+                    let weight;
+                    let weightFrom;
+                    let weightTo;
+                    if(weightValue.includes('-')){
+                        weight = weightValue.split('-');
+                        weightFrom = weight[0];
+                        weightTo = weight[1];
+                    }else if(weightValue.includes('to')){
+                        weight = weightValue.split('to');
+                        weightFrom = weight[0];
+                        weightTo = weight[1];
                     }else{
-                        weightFrom = parseFloat(prices[i-1].Weight) + 0.1;
+                        if(i === 0){
+                            weightFrom = 0.1;
+                        }else{
+                            weightFrom = parseFloat(prices[i-1].Weight) + 0.1;
+                        }
+                        weightTo = weightValue;
                     }
-                    weightTo = weightValue;
-                }
-                for(let j = 1; j < Object.keys(data).length; j++){
-                    let values = {                    
-                        zone: j,
-                        weight_from : weightFrom,
-                        weight_to: weightTo,
-                        price_per_kg: data[`${j}`] ? data[`${j}`] : 0,
-                        medicine_price_per_kg: 0,
-                        carrier_id: reqBody.carrier_id,
+                    for(let j = 1; j < Object.keys(data).length; j++){
+                        let values = {                    
+                            zone: j,
+                            weight_from : parseFloat(weightFrom),
+                            weight_to: parseFloat(weightTo),
+                            price_per_kg: data[`${j}`] ? data[`${j}`] : 0,
+                            medicine_price_per_kg: 0,
+                            carrier_id: reqBody.carrier_id,
+                        }
+                        pricesArray.push(values);
                     }
-                    pricesArray.push(values);
+                    i = i + 1;
                 }
-                i = i + 1;
-            })
-            .on('end', async() => {
+            });
+            if(pricesArray.length > 0){
                 let resp = await addPricesModelRecordToDB(pricesArray, 'Prices', true, true, reqBody.carrier_id); 
-                try {
-                    fs.unlinkSync(`./server/uploads/prices/${req.files['prices_file'][0]['filename']}`);
-                } catch (error) {
-                    winston.info({ 'PricesController:: Exception occured while unlink file in uploadPrices method': error.message });
-                }
                 if(resp){
                     return res.status(200).json({responseCode: 1, message: "success"});
                 } else {
                     return res.status(200).json({responseCode: 0, message: "failure"});
-                }                           
-            });           
+                }
+            }           
         }else{
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }                
     }catch (err) {
-        if (err.code == 11000){
+        winston.info({ 'PricesController:: Exception occured in uploadPrices method': err.message });
+        if (err.name == 'SequelizeUniqueConstraintError'){
             res.status(409).json({responseCode: 0, errorCode: 'iw1005', message : "Prices already exists with this name/code"});
         }else{
             return next(err);
@@ -557,6 +573,7 @@ module.exports.uploadCountries = async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }        
     }catch (err) {
+        winston.info({ 'PricesController:: Exception occured in getPrices method': err.message });
         return next(err);
     }
 }
@@ -578,6 +595,7 @@ module.exports.uploadCountries = async (req, res, next) => {
             return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
         }        
     }catch (err) {
+        winston.info({ 'PricesController:: Exception occured in getCarrrierZonePrices method': err.message });
         return next(err);
     }
 }
@@ -617,6 +635,7 @@ module.exports.uploadCountries = async (req, res, next) => {
         }        
         return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
     }catch (err) {
+        winston.info({ 'PricesController:: Exception occured in updatePrice method': err.message });
         return next(err);
     }
 }
@@ -638,6 +657,7 @@ module.exports.uploadCountries = async (req, res, next) => {
         }
         return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
     }catch (err) {
+        winston.info({ 'PricesController:: Exception occured in deletePrice method': err.message });
         return next(err);
     }
 }
@@ -658,6 +678,7 @@ module.exports.uploadCountries = async (req, res, next) => {
         }
         return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
     }catch (err) {
+        winston.info({ 'PricesController:: Exception occured in deleteAllPrices method': err.message });
         return next(err);
     }
 }

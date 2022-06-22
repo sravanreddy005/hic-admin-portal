@@ -1,9 +1,11 @@
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
+const xlsx = require('xlsx');
+const fs = require('fs');
 const crypto = require('crypto');
 const RandExp = require('randexp');
 const winston = require('../helpers/winston');
-const passwordGenRegx = /^([a-zA-Z0-9]){1}^([!@#$%&*_]){2}^([a-z0-9]){4}^([0-9]){2}^([A-Z0-9]){4}^([!@#$%&*_]){2}^([0-9]){1}$/;
+const passwordGenRegx = /^([a-zA-Z0-9]){1}^([!@#$*_]){2}^([a-z0-9]){4}^([0-9]){2}^([A-Z0-9]){4}^([!@#$*_]){2}^([0-9]){1}$/;
 const { emailRegx, alphaRegx, alnumRegx, alnumSpecialRegx, alphaSpecialRegx, addressRegx, mobileRegx, internationalMobileRegx, nonHTMLRegx, numRegx, pincodeRegx, dateRegx, passwordRegx, urlRegx } = require('./regExp');
 
 module.exports.genarateRandomString = (length = 8) => {
@@ -96,7 +98,7 @@ module.exports.validateData = (type, data) => {
         default:
             return true;
             break;
-    }    
+    }
 };
 
 //Generate JWT token
@@ -165,10 +167,10 @@ module.exports.decodeJWT = (token) => {
         jwt.verify(token, process.env.JWT_SECRET, async(err, decoded) => {
             if (err){
                 resolve();
-            }else {          
-                resolve(decoded);                           
+            }else {
+                resolve(decoded);
             }
-        });        
+        });
     });
 };
 
@@ -177,18 +179,18 @@ module.exports.stringToSlug = (str) => {
     return new Promise((resolve, reject) => {
         str = str.replace(/^\s+|\s+$/g, ''); // trim
         str = str.toLowerCase();
-        
+
         // remove accents, swap ñ for n, etc
         var from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;";
         var to   = "aaaaeeeeiiiioooouuuunc------";
         for (var i=0, l=from.length ; i<l ; i++) {
             str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
         }
-    
+
         str = str.replace(/[^a-z0-9 -]/g, '') // remove invalid chars
         .replace(/\s+/g, '-') // collapse whitespace and replace by -
         .replace(/-+/g, '-'); // collapse dashes
-    
+
         resolve(str);
     });
 }
@@ -199,12 +201,8 @@ module.exports.sendWhatsappMessage = (toMobileNo, template) => {
         try {
             let fromPhoneNoID = '100231582742912';
             let apiURL = `https://graph.facebook.com/v13.0/${fromPhoneNoID}/messages`;
-            // let headers = {
-            //     'Authorization': 'Bearer EAANE47CvoO4BAB4qQXd8A2hFT6ZCaiHZAScyhpxfoDdZBCYICuMGY16kMaNs5eu28hFTY2rSzzJR7zVoIMInWJBJo6XO6XZC2QGjojvKKT2vyB1ZBJlNgYWHPLv3JZBgrWwYoWfcEYiIZAwPpiitRKkJIOhCpcXqJtvOb9RrUgg2pQknk1aOYo2',
-            //     'Content-Type': 'application/json'
-            // };
             let headers = {
-                'Authorization': 'Bearer EAANE47CvoO4BAPYWKBeCLwTAbJOLdge0rYjF469N7PZBvLIYwNPYdVSWUH7sE8QmMuMZAQW8znA8agM9ZA1zwytvreGIjOSJqFLIG3WMZBZCuiWF2q8v5H1LCW8CDhLZBkBHJgFLFuTYjyZBc5bQU2n9DFX9C9kdritZAQURDXpmnKkP04yaMpv0',
+                'Authorization': 'Bearer ',
                 'Content-Type': 'application/json'
             };
             let data = {
@@ -221,8 +219,8 @@ module.exports.sendWhatsappMessage = (toMobileNo, template) => {
                 resolve(null);
             }
         } catch (error) {
-            
-        }        
+
+        }
     });
 };
 
@@ -278,7 +276,7 @@ module.exports.amountInwords = (amount) => {
       resolve((str.charAt(0).toUpperCase() + str.slice(1)).toUpperCase() + ' ONLY');
     });
   }
-  
+
   module.exports.formatDate = (date, format = 'dd/mm/yyyy') => {
     return new Promise((resolve, reject) => {
       if(date){
@@ -318,8 +316,26 @@ module.exports.getSumByKeyWithFilter = (arr, key, compareKey ='', compareVal = '
 }
 
 module.exports.getSumByKeyWithFilters = (arr, key, compareKey1 = '', compareVal1 = '', compareKey2 = '', compareVal2 = '') => {
-    return new Promise((resolve, reject) => {        
+    return new Promise((resolve, reject) => {
         let value = arr.filter((data) => data[compareKey1] === compareVal1 && data[compareKey2] === compareVal2).reduce((accumulator, current) => accumulator + Number(current[key]), 0);
         resolve(value);
+    });
+}
+
+module.exports.parseExcel = (filePath, unlinkFile = true) => {
+    return new Promise((resolve, reject) => {
+        const file = xlsx.readFile(filePath);
+        let data = [];
+        const sheets = file.SheetNames;
+        for(let i = 0; i < sheets.length; i++){
+            const temp = xlsx.utils.sheet_to_json(file.Sheets[file.SheetNames[i]])
+            temp.forEach((res) => {
+                data.push(res);
+            });
+        }
+        if(unlinkFile){
+            fs.unlinkSync(filePath);
+        }
+        resolve(data);
     });
 }
