@@ -37,7 +37,6 @@ module.exports.authenticateUser = async(req, res, next) => {
                 } 
             ]
          });
-        console.log('adminResp', adminResp);
         // If a admin is found
         if(adminResp){ 
             let validatePswd = await validatePassword(req.body.password, adminResp.salt, adminResp.hash);
