@@ -935,7 +935,7 @@ module.exports.addBranchCommission = async (req, res, next) => {
  */
 module.exports.getBranchCommissions = async (req, res, next) => {
     try {
-        let whereData = '';
+        let whereData = {};   
         if(req.body.branch_id){
             whereData.branch_id = req.body.branch_id;
         }
