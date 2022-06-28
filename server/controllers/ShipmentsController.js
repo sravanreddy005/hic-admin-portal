@@ -4,6 +4,7 @@ const winston = require('../helpers/winston');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 
+
 const {  
     addShipmentsModelRecordToDB,
     getOneShipmentsModelRecordFromDB,
