@@ -14,7 +14,7 @@
       padding: 10px;
       color: #555555;
       background: #FFFFFF;
-      font-size: 10px;
+      font-size: 6px;
       font-weight: bold;
       font-family: 'Open Sans', sans-serif;
       box-sizing: border-box;
@@ -66,12 +66,15 @@
 
     th,td {
       text-align: left;
-      padding: 5px;
+      padding: 2px;
       border: 1px solid #ddd;
     }
 
     .text-center {
       text-align: center;
+    }
+    .pad-2 {
+      padding: 2px;
     }
     .pad-5 {
       padding: 5px;
@@ -84,8 +87,8 @@
     }
 
     strong {
-      font-size: 11px;
-      font-weight: bolder;
+      font-size: 7px;
+      /* font-weight: bold; */
     }
 
   </style>
@@ -98,8 +101,8 @@
     </div>
     <main class="invoice-template">
       <div class="row details">
-        <div class="column" style="border-right: 2px solid #ddd;">
-          <div class="pad-5">
+        <div class="column" style="border-right: 1px solid #ddd;">
+          <div class="pad-2">
             <strong>SHIPPER</strong> : <br />
             {{sender_name}} <br />
             {{sender_address1}} {{sender_address2}} {{sender_address3}} <br />
@@ -110,7 +113,7 @@
           </div>
         </div>
         <div class="column">
-          <div class="pad-5">
+          <div class="pad-2">
             <strong>INVOICE NO</strong> : {{invoice_number}} <br />
             <strong>DATE</strong> : {{date}} <br />
             <strong>EXPORTER'S REF</strong> :  <br />
@@ -121,8 +124,8 @@
         </div>
       </div>      
       <div class="row details">
-        <div class="column" style="border-right: 2px solid #ddd;">
-          <div class="pad-5">
+        <div class="column" style="border-right: 1px solid #ddd;">
+          <div class="pad-2">
             <strong>CONSIGNEE</strong> : <br />
             {{receiver_name}} <br />
             VINAY LOKESH 65 EPPING ROAD PHILIPS HEALTH CARE AUSTRALIA NORTH RYDE <br /><br />
@@ -134,7 +137,7 @@
           </div>
         </div>
         <div class="column">
-          <div class="pad-5">
+          <div class="pad-2">
             <strong>WEIGHT</strong> : {{chargable_weight}} KGS <br /><br /><br />
             <strong>TERMS OF DELIVERY & PAYMENT</strong>:<br /><br />
             BEING SENDING FOR GIFT PURPOSE AND NOT FOR SALE<br />
@@ -143,60 +146,60 @@
         </div>
       </div>
       <div class="row middle-cols" style="border: 1px solid #ddd;">
-        <div class="column" style="border-right: 2px solid #ddd; width: 33%;">
-          <div class="pad-5">
+        <div class="column" style="border-right: 1px solid #ddd; width: 33%;">
+          <div class="pad-2">
             <strong>PRE-CARRIAGE BY</strong> <br />
             &nbsp;
           </div>
         </div>
-        <div class="column" style="border-right: 2px solid #ddd; width: 33%">
-          <div class="pad-5">            
+        <div class="column" style="border-right: 1px solid #ddd; width: 33%">
+          <div class="pad-2">            
             <strong>PORT OF RECEIPT BY PRE CA</strong> <br />
             &nbsp;
           </div>
         </div>
         <div class="column" style="width: 33%">
-          <div class="pad-5">
+          <div class="pad-2">
             <strong>OTHER REFERENCE (S)</strong> <br />
             &nbsp;
           </div>
         </div>
       </div>
       <div class="row middle-cols" style="border: 1px solid #ddd;">
-        <div class="column" style="border-right: 2px solid #ddd; width: 33%;">
+        <div class="column" style="border-right: 1px solid #ddd; width: 33%;">
           <div class="pad-5">
             <strong>VESSEL/FLIGHT NO</strong> <br />
                 &nbsp;
           </div>
         </div>
-        <div class="column" style="border-right: 2px solid #ddd; width: 33%">
-          <div class="pad-5">            
+        <div class="column" style="border-right: 1px solid #ddd; width: 33%">
+          <div class="pad-2">            
             <strong>PLACE OF LOADING</strong> <br />
             BANGALORE
           </div>
         </div>
         <div class="column" style="width: 33%">
-          <div class="pad-5">
+          <div class="pad-2">
             <strong>COUNTRY OF ORIGIN</strong> <br />
             INDIA
           </div>
         </div>
       </div>
       <div class="row middle-cols" style="border: 1px solid #ddd;">
-        <div class="column" style="border-right: 2px solid #ddd; width: 33%;">
-          <div class="pad-5">
+        <div class="column" style="border-right: 1px solid #ddd; width: 33%;">
+          <div class="pad-2">
             <strong>PORT OF DISCHARGE</strong> <br />
             BANGALORE
           </div>
         </div>
-        <div class="column" style="border-right: 2px solid #ddd; width: 33%">
-          <div class="pad-5">            
+        <div class="column" style="border-right: 1px solid #ddd; width: 33%">
+          <div class="pad-2">            
             <strong>COUNTRY OF DESTINATION</strong> <br />
             {{destination_country}}
           </div>
         </div>
         <div class="column" style="width: 33%">
-          <div class="pad-5">
+          <div class="pad-2">
             <strong>FINAL DESTINATION</strong> <br />
             {{destination_country}}
           </div>
@@ -228,7 +231,7 @@
             </tr>
             {{/each}}                     
           </tbody>
-          <tfoot style="border-top: 2px solid #ddd;">
+          <tfoot style="border-top: 1px solid #ddd;">
             <tr>
               <td colspan="3"><strong>AMOUNT IN WORDS</strong> : INR {{amount_in_words}}</td>
               <td><strong>TOTAL</strong></td>
@@ -240,10 +243,9 @@
         </table>
       </div>
       <div class="row details">
-        <div class="column" style="border-right: 2px solid #ddd; width: 70%;">
-          <div class="pad-5">
+        <div class="column" style="border-right: 1px solid #ddd; width: 70%;">
+          <div class="pad-2">
             DECLAIRATION : THIS IS CERTIFY THAT THE RATE AND QUANTITY MENTIONED IN THIS INVOICE IS TRUE AND CORRECT.
-            &nbsp; <br/>
             &nbsp; <br/>
             &nbsp; <br/>
             &nbsp; <br/>
@@ -252,8 +254,8 @@
           </div>
         </div>
         <div class="column" style="width: 30%;">
-          <div class="pad-5">
-            FOR, <br /><br/><br/><br/><br/><br/>
+          <div class="pad-2">
+            FOR, <br /><br/><br/><br/>
             <div class="text-center">
               AUTHORIZED SIGNATORY
             </div>
