@@ -34,10 +34,6 @@
       height: 70px;
     }
 
-    .details {
-      border: 1px solid #ddd;
-    }
-
     * {
       box-sizing: border-box;
     }
@@ -68,6 +64,7 @@
       text-align: left;
       padding: 2px;
       border: 1px solid #ddd;
+      border-left: 0;
     }
 
     .text-center {
@@ -100,7 +97,7 @@
       <h2 class="text-center" style="margin-bottom: 0px">INVOICE</h2>
     </div>
     <main class="invoice-template">
-      <div class="row details">
+      <div class="row details" style="border-bottom: 1px solid #ddd;">
         <div class="column" style="border-right: 1px solid #ddd;">
           <div class="pad-2">
             <strong>SHIPPER</strong> : <br />
@@ -128,8 +125,7 @@
           <div class="pad-2">
             <strong>CONSIGNEE</strong> : <br />
             {{receiver_name}} <br />
-            VINAY LOKESH 65 EPPING ROAD PHILIPS HEALTH CARE AUSTRALIA NORTH RYDE <br /><br />
-            <!-- {{receiver_address1}} {{receiver_address2}} {{receiver_address3}} <br /><br /> -->
+            {{receiver_address1}} {{receiver_address2}} {{receiver_address3}} <br /><br />
             {{receiver_city}} <br />
             {{receiver_state}} <br />
             {{destination_country}} <br />
@@ -145,7 +141,7 @@
           </div>
         </div>
       </div>
-      <div class="row middle-cols" style="border: 1px solid #ddd;">
+      <div class="row middle-cols" style="border-top: 1px solid #ddd;border-bottom: 1px solid #ddd;">
         <div class="column" style="border-right: 1px solid #ddd; width: 33%;">
           <div class="pad-2">
             <strong>PRE-CARRIAGE BY</strong> <br />
@@ -165,9 +161,9 @@
           </div>
         </div>
       </div>
-      <div class="row middle-cols" style="border: 1px solid #ddd;">
+      <div class="row middle-cols">
         <div class="column" style="border-right: 1px solid #ddd; width: 33%;">
-          <div class="pad-5">
+          <div class="pad-2">
             <strong>VESSEL/FLIGHT NO</strong> <br />
                 &nbsp;
           </div>
@@ -185,7 +181,7 @@
           </div>
         </div>
       </div>
-      <div class="row middle-cols" style="border: 1px solid #ddd;">
+      <div class="row middle-cols" style="border-top: 1px solid #ddd;border-bottom: 1px solid #ddd;">
         <div class="column" style="border-right: 1px solid #ddd; width: 33%;">
           <div class="pad-2">
             <strong>PORT OF DISCHARGE</strong> <br />
@@ -215,7 +211,7 @@
               <th>HS CODE</th>
               <th>QTY</th>
               <th>RATE(Rs)</th>
-              <th>AMOUNT(Rs)</th>
+              <th style="border-right: 0;">AMOUNT(Rs)</th>
             </tr>
           </thead>
           <tbody>
@@ -227,7 +223,7 @@
               <td>{{this.hsn_code}}</td>
               <td>{{this.quantity}}</td>
               <td>{{item.unit_price}}</td>
-              <td>{{this.commodity_value}}</td>
+              <td style="border-right: 0;">{{this.commodity_value}}</td>
             </tr>
             {{/each}}                     
           </tbody>
@@ -237,7 +233,7 @@
               <td><strong>TOTAL</strong></td>
               <td><strong>{{total_commodities_quantity}}</strong></td>
               <td><strong>{{total_commodities_unitprice}}</strong></td>
-              <td><strong>{{total_commodity_value}}</strong></td>
+              <td style="border-right: 0;"><strong>{{total_commodity_value}}</strong></td>
             </tr>
           </tfoot>
         </table>
