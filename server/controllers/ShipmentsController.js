@@ -4,7 +4,6 @@ const winston = require('../helpers/winston');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 
-
 const {  
     addShipmentsModelRecordToDB,
     getOneShipmentsModelRecordFromDB,
@@ -285,11 +284,20 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
  */
  module.exports.getEmptyTrackingShipmentsList = async (req, res, next) => {
     try {
+        let now = new Date();
+        const backDate = new Date(now.setDate(now.getDate() - 30));
+        let date = backDate.toISOString().split('T');
         let whereData = {
             tracking_no1: null,
             tracking_no2: null,
             tracking_no3: null,
             tracking_no4: null
+        }
+        if(req.body.branch_id){
+            whereData.branch_id = req.body.branch_id;
+        }else if (req.tokenData.role_type != 'Super-Admin'){
+            whereData.branch_id = req.tokenData.branch_id;
+            whereData.date = {[Op.gte]: date[0]};
         }
         let resp = await getShipmentsList(whereData);
         return res.status(200).json({responseCode: 1, message: "success", shipments: resp});      
@@ -342,7 +350,7 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
         let whereData = {};
         if(req.body.branch_id){
             whereData.branch_id = req.body.branch_id;
-        }else if (req.tokenData.role_type != 'Super-Admin' && req.tokenData.role_id !== 4){
+        }else if (req.tokenData.role_type != 'Super-Admin'){
             whereData.branch_id = req.tokenData.branch_id;
             whereData.date = {[Op.gte]: date[0]};
         }
