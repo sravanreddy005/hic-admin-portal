@@ -386,7 +386,7 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
             whereData.branch_id = req.tokenData.branch_id;
         }
 
-        let attributes = ['id','branch_id','date','boxes_3kg','boxes_5kg','boxes_10kg','boxes_15kg','boxes_custom','custom_box_dimentions'];
+        let attributes = ['id','branch_id','date','boxes_3kg','boxes_5kg','boxes_10kg','boxes_15kg','boxes_custom'];
 
         let resp = await getShipmentsModelRecordsWithAttributesFromDB('Shipments', whereData, attributes, false);
         return res.status(200).json({responseCode: 1, message: "success", shipments: resp});     
