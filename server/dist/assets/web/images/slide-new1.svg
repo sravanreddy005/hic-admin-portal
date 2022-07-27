@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="635" height="486" viewBox="0 0 635 486">
+  <defs>
+    <radialGradient id="radial-gradient" cx="0.5" cy="0.5" r="0.5" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#0073b4"/>
+      <stop offset="1" stop-color="#008ad8"/>
+    </radialGradient>
+    <clipPath id="clip-Artboard_1aa">
+      <rect width="635" height="486"/>
+    </clipPath>
+  </defs>
+  <g id="Artboard_1aa" data-name="Artboard – 1aa" clip-path="url(#clip-Artboard_1aa)">
+    <rect width="635" height="486" fill="#fff"/>
+    <rect id="Rectangle_1" data-name="Rectangle 1" width="635" height="486" fill="url(#radial-gradient)"/>
+  </g>
+</svg>

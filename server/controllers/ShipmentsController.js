@@ -31,6 +31,7 @@ const {
             reqBody.invoice_number &&
             reqBody.date &&
             reqBody.service_type &&            
+            reqBody.shipment_type &&            
             reqBody.destination_country && validateData('alpha', reqBody.destination_country) && (reqBody.destination_country).length === 2 &&
             reqBody.no_of_pieces && validateData('num', reqBody.no_of_pieces) &&
             reqBody.actual_weight && validateData('float', reqBody.actual_weight) &&
@@ -57,18 +58,33 @@ const {
             if(reqBody.mode_of_payment !== 'CASH' && !reqBody.transaction_id){
                 return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
             }
+            if(reqBody.shipment_type === 'C2C' && reqBody.total_amount > 24000){
+                return res.status(200).json({responseCode: 0, message: "Commodity value should not exceed 24,000 for C2C shipment"});
+            }
+            if((reqBody.sender_id_proof_type).toUpperCase() === 'AADHAR' && !validateData('aadhar', reqBody.sender_id_proof_number)){
+                return res.status(400).json({responseCode: 0, message: "Invalid aadhar number"});
+            }else if((reqBody.sender_id_proof_type).toUpperCase() === 'PAN CARD' && !validateData('pancard', reqBody.sender_id_proof_number)){
+                return res.status(400).json({responseCode: 0, message: "Invalid pancard number"});
+            }else if((reqBody.sender_id_proof_type).toUpperCase() === 'GSTN' && !validateData('gstn', reqBody.sender_id_proof_number)){
+                return res.status(400).json({responseCode: 0, message: "Invalid gstn number"});
+            }else if((reqBody.sender_id_proof_type).toUpperCase() === 'PASSPORT' && !validateData('passport', reqBody.sender_id_proof_number)){
+                return res.status(400).json({responseCode: 0, message: "Invalid passport number"});
+            }
+
             let boxesDetails = JSON.parse(reqBody.boxes_details);
             let boxes3kgCount = boxesDetails.filter(data => data.box_weight === '3KG').length;
             let boxes5kgCount = boxesDetails.filter(data => data.box_weight === '5KG').length;
             let boxes10kgCount = boxesDetails.filter(data => data.box_weight === '10KG').length;
             let boxes15kgCount = boxesDetails.filter(data => data.box_weight === '15KG').length;
             let boxesCustomCount = boxesDetails.filter(data => data.box_weight === 'CUSTOM').length;
+            let amount = reqBody.basic_amount + reqBody.commercial_charges_amount + reqBody.jewellery_appraisal_amount + reqBody.pickup_charges_amount + reqBody.packing_charges_amount;
             let data = {
                 branch_id: reqBody.branch,
                 invoice_number: reqBody.invoice_number,
                 reference_number: Date.now(),
                 date: reqBody.date,
                 service_type: reqBody.service_type,
+                shipment_type: reqBody.shipment_type,
                 destination_country: reqBody.destination_country,
                 no_of_pieces: reqBody.no_of_pieces,
                 boxes_details: reqBody.boxes_details,
@@ -83,7 +99,11 @@ const {
                 medicine_shipment: reqBody.medicine_shipment,     
                 product_type: reqBody.product_type,
                 basic_amount: reqBody.basic_amount,
-                gst_amount: reqBody.gst_amount ? reqBody.gst_amount : (reqBody.basic_amount * 18) / 100,
+                commercial_charges_amount: reqBody.commercial_charges_amount,
+                jewellery_appraisal_amount: reqBody.jewellery_appraisal_amount,
+                pickup_charges_amount: reqBody.pickup_charges_amount,
+                packing_charges_amount: reqBody.packing_charges_amount,
+                gst_amount: reqBody.gst_amount ? reqBody.gst_amount : (amount * 18) / 100,
                 other_amount: reqBody.other_amount ? reqBody.other_amount : 0,
                 total_amount: reqBody.total_amount,
                 mode_of_payment: reqBody.mode_of_payment,
@@ -153,7 +173,8 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
             reqBody.invoice_number &&
             reqBody.date &&
             reqBody.service_type &&            
-            reqBody.tracking_no1 && validateData('nonHTML', reqBody.no_of_pieces) &&
+            reqBody.shipment_type &&            
+            // reqBody.tracking_no1 && validateData('nonHTML', reqBody.no_of_pieces) &&
             reqBody.destination_country && validateData('alpha', reqBody.destination_country) && (reqBody.destination_country).length === 2 &&
             reqBody.no_of_pieces && validateData('num', reqBody.no_of_pieces) &&
             reqBody.actual_weight && validateData('float', reqBody.actual_weight) &&
@@ -180,6 +201,19 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
             if(reqBody.mode_of_payment !== 'CASH' && !reqBody.transaction_id){
                 return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
             }
+            if(reqBody.shipment_type === 'C2C' && reqBody.total_amount > 24000){
+                return res.status(200).json({responseCode: 0, message: "Commodity value should not exceed 24,000 for C2C shipment"});
+            }
+            if((reqBody.sender_id_proof_type).toUpperCase() === 'AADHAR' && !validateData('aadhar', reqBody.sender_id_proof_number)){
+                return res.status(400).json({responseCode: 0, message: "Invalid aadhar number"});
+            }else if((reqBody.sender_id_proof_type).toUpperCase() === 'PAN CARD' && !validateData('pancard', reqBody.sender_id_proof_number)){
+                return res.status(400).json({responseCode: 0, message: "Invalid pancard number"});
+            }else if((reqBody.sender_id_proof_type).toUpperCase() === 'GSTN' && !validateData('gstn', reqBody.sender_id_proof_number)){
+                return res.status(400).json({responseCode: 0, message: "Invalid gstn number"});
+            }else if((reqBody.sender_id_proof_type).toUpperCase() === 'PASSPORT' && !validateData('passport', reqBody.sender_id_proof_number)){
+                return res.status(400).json({responseCode: 0, message: "Invalid passport number"});
+            }
+
             let shipmentsDetails = await getOneShipmentsModelRecordFromDB('Shipments', {id: reqBody.id});
             if(shipmentsDetails){
                 let currentDate = new Date().toISOString().split('T')[0];
@@ -191,10 +225,10 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
                         date: reqBody.date,
                         service_type: reqBody.service_type,
                         destination_country: reqBody.destination_country,
-                        tracking_no1: reqBody.tracking_no1,
-                        tracking_no2: reqBody.tracking_no2 ? reqBody.tracking_no2 : '',
-                        tracking_no3: reqBody.tracking_no3 ? reqBody.tracking_no3 : '',
-                        tracking_no4: reqBody.tracking_no4 ? reqBody.tracking_no4 : '',
+                        // tracking_no1: reqBody.tracking_no1,
+                        // tracking_no2: reqBody.tracking_no2 ? reqBody.tracking_no2 : '',
+                        // tracking_no3: reqBody.tracking_no3 ? reqBody.tracking_no3 : '',
+                        // tracking_no4: reqBody.tracking_no4 ? reqBody.tracking_no4 : '',
                         sender_name: (reqBody.sender_name).toUpperCase(),
                         sender_company_name: reqBody.sender_company_name ? (reqBody.sender_company_name).toUpperCase() : '',
                         sender_address1: (reqBody.sender_address1).toUpperCase(),
@@ -229,6 +263,7 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
                         let boxes10kgCount = boxesDetails.filter(data => data.box_weight === '10KG').length;
                         let boxes15kgCount = boxesDetails.filter(data => data.box_weight === '15KG').length;
                         let boxesCustomCount = boxesDetails.filter(data => data.box_weight === 'CUSTOM').length;
+                        let amount = reqBody.basic_amount + reqBody.commercial_charges_amount + reqBody.jewellery_appraisal_amount + reqBody.pickup_charges_amount + reqBody.packing_charges_amount;
                         data2 = {
                             branch_id: reqBody.branch,
                             no_of_pieces: reqBody.no_of_pieces,
@@ -244,7 +279,11 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
                             medicine_shipment: reqBody.medicine_shipment,     
                             product_type: reqBody.product_type,
                             basic_amount: reqBody.basic_amount,
-                            gst_amount: reqBody.gst_amount ? reqBody.gst_amount : (reqBody.basic_amount * 18) / 100,
+                            commercial_charges_amount: reqBody.commercial_charges_amount,
+                            jewellery_appraisal_amount: reqBody.jewellery_appraisal_amount,
+                            pickup_charges_amount: reqBody.pickup_charges_amount,
+                            packing_charges_amount: reqBody.packing_charges_amount,
+                            gst_amount: reqBody.gst_amount ? reqBody.gst_amount : (amount * 18) / 100,
                             other_amount: reqBody.other_amount ? reqBody.other_amount : 0,
                             total_amount: reqBody.total_amount,
                             mode_of_payment: reqBody.mode_of_payment,
@@ -326,12 +365,25 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
             tracking_no4: null,
             date: {[Op.between]: [startedDate, endDate]}
         }
+        if(req.body.branch_id){
+            whereData1.branch_id = req.body.branch_id;
+        }else if (req.tokenData.role_type != 'Super-Admin'){
+            whereData1.branch_id = req.tokenData.branch_id;
+        }
         let shipmentsWithoutTrackingNoCount = await getShipmentsModelRecordsCount('Shipments', whereData1);
         let whereData2 = {
             tracking_no1: { [Op.not]: null},
             date: {[Op.between]: [startedDate, endDate]}
         }
+        if(req.body.branch_id){
+            whereData2.branch_id = req.body.branch_id;
+        }else if (req.tokenData.role_type != 'Super-Admin'){
+            whereData2.branch_id = req.tokenData.branch_id;
+        }
+        console.log('whereData2', whereData2);
         let shipmentsWithTrackingNoCount = await getShipmentsModelRecordsCount('Shipments', whereData2);
+        console.log('shipmentsWithoutTrackingNoCount', shipmentsWithoutTrackingNoCount);
+        console.log('shipmentsWithTrackingNoCount', shipmentsWithTrackingNoCount);
         return res.status(200).json({responseCode: 1, message: "success", countData: {shipmentsWithoutTrackingNoCount, shipmentsWithTrackingNoCount}});      
     }catch (err) {
         winston.info({ 'ShipmentsController:: Exception occured in getShipmentsCount method': err.message });
@@ -490,6 +542,7 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
             reqBody.id &&
             reqBody.tracking_no1
         ){
+            let tracking_no1_old = reqBody.tracking_no1_old ? reqBody.tracking_no1_old : null;
             let data = {
                 tracking_no1: reqBody.tracking_no1,
                 tracking_no2: reqBody.tracking_no2 ? reqBody.tracking_no2 : null,
@@ -501,9 +554,9 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
                 let whereData = {id: req.body.id};
                 let attributes = ['sender_phone_number','invoice_number','no_of_pieces','chargable_weight','total_amount'];
                 let resp = await getOneShipmentsModelRecordWithAttributesFromDB('Shipments', whereData, attributes);
-                if(resp && resp.sender_phone_number){
+                if(resp && resp.sender_phone_number && tracking_no1_old !== reqBody.tracking_no1){
                     let template = {
-                        name: 'shipping_update',
+                        name: 'shipment_tracking_update',
                         components: [{
                             type: 'body',
                             parameters: [
@@ -525,7 +578,7 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
                                 },
                                 {
                                     "type": "text",
-                                    "text": (reqBody.tracking_no1).toString()
+                                    "text": `${process.env.APP_URL}/tracking/${reqBody.tracking_no1}`
                                 }
                             ]
                         }],

@@ -35,6 +35,10 @@ ShipmentModels.Shipments = sequelize.define('shipments', {
     type: Sequelize.INTEGER,
     allowNull: false,
   },
+  shipment_type: {
+    type: Sequelize.STRING,
+    allowNull: false,
+  },
   tracking_no1: {
     type: Sequelize.STRING
   },
@@ -95,6 +99,22 @@ ShipmentModels.Shipments = sequelize.define('shipments', {
     allowNull: false
   },
   basic_amount: {
+    type: Sequelize.FLOAT,
+    allowNull: false
+  },
+  commercial_charges_amount: {
+    type: Sequelize.FLOAT,
+    allowNull: false
+  },
+  jewellery_appraisal_amount: {
+    type: Sequelize.FLOAT,
+    allowNull: false
+  },
+  pickup_charges_amount: {
+    type: Sequelize.FLOAT,
+    allowNull: false
+  },
+  packing_charges_amount: {
     type: Sequelize.FLOAT,
     allowNull: false
   },

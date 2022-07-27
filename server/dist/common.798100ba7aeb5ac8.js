@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkngx_admin=self.webpackChunkngx_admin||[]).push([[592],{8543:(i,c,u)=>{u.d(c,{h:()=>s});var t=u(3184);let s=(()=>{class e{constructor(n){this.elementRef=n}ngOnInit(){this.elementRef.nativeElement.focus()}}return e.\u0275fac=function(n){return new(n||e)(t.Y36(t.SBq))},e.\u0275dir=t.lG2({type:e,selectors:[["","autoFocus",""]]}),e})()}}]);
+//# sourceMappingURL=common.798100ba7aeb5ac8.js.map

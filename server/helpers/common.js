@@ -6,7 +6,7 @@ const crypto = require('crypto');
 const RandExp = require('randexp');
 const winston = require('../helpers/winston');
 const passwordGenRegx = /^([a-zA-Z0-9]){1}^([!@#$*_]){2}^([a-z0-9]){4}^([0-9]){2}^([A-Z0-9]){4}^([!@#$*_]){2}^([0-9]){1}$/;
-const { emailRegx, alphaRegx, alnumRegx, alnumSpecialRegx, alphaSpecialRegx, addressRegx, mobileRegx, internationalMobileRegx, nonHTMLRegx, numRegx, pincodeRegx, dateRegx, passwordRegx, urlRegx } = require('./regExp');
+const { emailRegx, alphaRegx, alnumRegx, alnumSpecialRegx, alphaSpecialRegx, addressRegx, mobileRegx, nonHTMLRegx, numRegx, pincodeRegx, dateRegx, dateRegx2, passwordRegx, urlRegx, aadharRegx, panCardRegx, gstnRegx, passportRegx } = require('./regExp');
 
 module.exports.genarateRandomString = (length = 8) => {
     return new Promise((resolve, reject) => {
@@ -86,6 +86,9 @@ module.exports.validateData = (type, data) => {
         case 'date':
             return dateRegx.test(data);
             break;
+        case 'date2':
+            return dateRegx2.test(data);
+            break;
         case 'password':
             return passwordRegx.test(data);
             break;
@@ -95,10 +98,22 @@ module.exports.validateData = (type, data) => {
         case 'float':
             return !isNaN(parseFloat(data));
             break;
+        case 'aadhar':
+            return aadharRegx.test(data);
+            break;
+        case 'pancard':
+            return panCardRegx.test(data);
+            break;
+        case 'gstn':
+            return gstnRegx.test(data);
+            break;
+        case 'passport':
+            return passportRegx.test(data);
+            break;
         default:
             return true;
             break;
-    }
+    }    
 };
 
 //Generate JWT token
@@ -167,10 +182,10 @@ module.exports.decodeJWT = (token) => {
         jwt.verify(token, process.env.JWT_SECRET, async(err, decoded) => {
             if (err){
                 resolve();
-            }else {
-                resolve(decoded);
+            }else {          
+                resolve(decoded);                           
             }
-        });
+        });        
     });
 };
 
@@ -179,18 +194,18 @@ module.exports.stringToSlug = (str) => {
     return new Promise((resolve, reject) => {
         str = str.replace(/^\s+|\s+$/g, ''); // trim
         str = str.toLowerCase();
-
+        
         // remove accents, swap ñ for n, etc
         var from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;";
         var to   = "aaaaeeeeiiiioooouuuunc------";
         for (var i=0, l=from.length ; i<l ; i++) {
             str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
         }
-
+    
         str = str.replace(/[^a-z0-9 -]/g, '') // remove invalid chars
         .replace(/\s+/g, '-') // collapse whitespace and replace by -
         .replace(/-+/g, '-'); // collapse dashes
-
+    
         resolve(str);
     });
 }
@@ -202,25 +217,25 @@ module.exports.sendWhatsappMessage = (toMobileNo, template) => {
             let fromPhoneNoID = '100231582742912';
             let apiURL = `https://graph.facebook.com/v13.0/${fromPhoneNoID}/messages`;
             let headers = {
-                'Authorization': 'Bearer ',
+                'Authorization': 'Bearer EAANE47CvoO4BABW7YiCJaYaC3IUz0zYrFDNZAYGbyIcqyvm1iTzOlgznZBJDSPODAsWPRymEJENBvzZB4z0Ic9tZBWfaOLoXcfK5JgFYkZBuvbFWFxF7PHlY2YaIeU9YSitQcZCceW2ahd0oZB2AnYOrInEhhic88WkaHcEsA8OUPrx89Qx60b9ig6TfxNom52UaYtGleWYQAZDZD',
                 'Content-Type': 'application/json'
             };
             let data = {
                 messaging_product: 'whatsapp',
                 to: toMobileNo,
                 type: 'template',
-                template: template
+                template: template,
+                preview_url: true,
             }
             let apiResp = await this.externalApiRequest(apiURL, data, headers);
-            console.log('sendWhatsappMessage apiResp', apiResp);
             if(apiResp){
                 resolve(apiResp);
             }else{
                 resolve(null);
             }
         } catch (error) {
-
-        }
+            
+        }        
     });
 };
 
@@ -276,7 +291,7 @@ module.exports.amountInwords = (amount) => {
       resolve((str.charAt(0).toUpperCase() + str.slice(1)).toUpperCase() + ' ONLY');
     });
   }
-
+  
   module.exports.formatDate = (date, format = 'dd/mm/yyyy') => {
     return new Promise((resolve, reject) => {
       if(date){
@@ -316,26 +331,58 @@ module.exports.getSumByKeyWithFilter = (arr, key, compareKey ='', compareVal = '
 }
 
 module.exports.getSumByKeyWithFilters = (arr, key, compareKey1 = '', compareVal1 = '', compareKey2 = '', compareVal2 = '') => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {        
         let value = arr.filter((data) => data[compareKey1] === compareVal1 && data[compareKey2] === compareVal2).reduce((accumulator, current) => accumulator + Number(current[key]), 0);
         resolve(value);
     });
 }
 
 module.exports.parseExcel = (filePath, unlinkFile = true) => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {        
         const file = xlsx.readFile(filePath);
         let data = [];
-        const sheets = file.SheetNames;
+        const sheets = file.SheetNames;        
         for(let i = 0; i < sheets.length; i++){
             const temp = xlsx.utils.sheet_to_json(file.Sheets[file.SheetNames[i]])
             temp.forEach((res) => {
                 data.push(res);
             });
-        }
-        if(unlinkFile){
-            fs.unlinkSync(filePath);
+        }  
+        if(unlinkFile){     
+            fs.unlinkSync(filePath); 
         }
         resolve(data);
+    });
+}
+
+module.exports.roundOffWeight = (weight) => {
+    return new Promise((resolve, reject) => {
+        let decimal =  parseFloat((weight - Math.floor(weight)).toFixed(2));
+        let finalWeight = weight;
+        if(decimal !== 0 && weight > 20){
+            finalWeight = Math.trunc(weight) + 1;
+        }else if(decimal !== 0 && decimal <= 0.5){
+            finalWeight = Math.trunc(weight) + 0.5;
+        }else if(decimal !== 0 && decimal > 0.5){
+            finalWeight = Math.trunc(weight) + 1;
+        }
+
+        resolve(finalWeight);
+    });
+}
+
+module.exports.groupArrayOfObjects = (list, key) => {
+    return new Promise((resolve, reject) => {
+        let data =  list.reduce(function(rv, x) {
+        (rv[x[key]] = rv[x[key]] || []).push(x);
+            return rv;
+        }, {});
+        let result = [];
+
+        const groups = Object.keys(data).map(function (key) {
+            return {group: key, values: data[key]};
+        });
+
+        resolve(groups);
     });
 }

@@ -362,6 +362,25 @@ module.exports.uploadCountries = async (req, res, next) => {
 }
 
 /**
+ * fetching the carrier zones list based on country
+ */
+ module.exports.getCarrierZonesByCountry = async (countryCode) => {
+    return new Promise(async(resolve, reject) => {
+        try {
+            if(countryCode){
+                let resp = await getPricesModelFilteredRecordsFromDB('CarrierCountryZones', {country_code: countryCode});
+                resolve(resp);
+            }else{
+                resolve(null);
+            }        
+        }catch (err) {
+            winston.info({ 'PricesController:: Exception occured in getCarrierZones method': err.message });
+            reject(err);
+        }
+    });    
+}
+
+/**
  * updating the carrier zone details
  */
  module.exports.updateCarrierZone = async (req, res, next) => {

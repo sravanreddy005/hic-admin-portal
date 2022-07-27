@@ -582,7 +582,108 @@ AdminModels.Complaints = sequelize.define('complaints', {
 }
 );
 AdminModels.Complaints.belongsTo(AdminModels.Branches, {foreignKey: 'branch_id', targetKey: 'id'});
-// AdminModels.Complaints.belongsTo(ShipmentModels.Shipments, {foreignKey: 'invoice_number', targetKey: 'invoice_number'});
 /*********************** End of complaints schema defining *************************/
+
+/*********************** Contact schema defining *************************/
+AdminModels.ContactInfo = sequelize.define('contact_info', {
+  id: {
+    type: Sequelize.INTEGER,
+    unique: true,
+    autoIncrement: true,
+    primaryKey: true
+  },
+  name: {
+    type: Sequelize.STRING,
+  },
+  email: {
+    type: Sequelize.STRING,
+  },
+  mobile_number: {
+    type: Sequelize.STRING,
+  },
+  message: {
+    type: Sequelize.TEXT,
+  }
+},
+  {
+    underscored: true,
+    freezeTableName: true,
+    tableName: 'contact_info'
+  }
+);
+/*********************** End of contact schema defining *************************/
+
+/*********************** ParterUs schema defining *************************/
+AdminModels.ParterUs = sequelize.define('parter_us', {
+  id: {
+    type: Sequelize.INTEGER,
+    unique: true,
+    autoIncrement: true,
+    primaryKey: true
+  },
+  name: {
+    type: Sequelize.STRING,
+  },
+  email: {
+    type: Sequelize.STRING,
+  },
+  mobile_number: {
+    type: Sequelize.STRING,
+  },
+  city: {
+    type: Sequelize.STRING,
+  },
+  state: {
+    type: Sequelize.STRING,
+  },
+  pincode: {
+    type: Sequelize.STRING,
+  },
+  address: {
+    type: Sequelize.TEXT,
+  },
+  know_about_hic: {
+    type: Sequelize.TEXT,
+  }
+},
+  {
+    underscored: true,
+    freezeTableName: true,
+    tableName: 'parter_us'
+  }
+);
+/*********************** End of parter us schema defining *************************/
+
+/*********************** Pickup requests schema defining *************************/
+AdminModels.PickupRequests = sequelize.define('pickup_requests', {
+  id: {
+    type: Sequelize.INTEGER,
+    unique: true,
+    autoIncrement: true,
+    primaryKey: true
+  },
+  name: {
+    type: Sequelize.STRING,
+  },
+  mobile_number: {
+    type: Sequelize.STRING,
+  },
+  pickup_date: {
+    type: Sequelize.DATEONLY,
+  },
+  weight: {
+    type: Sequelize.STRING,
+  },
+  address: {
+    type: Sequelize.TEXT,
+  }
+},
+  {
+    underscored: true,
+    freezeTableName: true,
+    tableName: 'pickup_requests'
+  }
+);
+/*********************** End of pickup requests schema defining *************************/
 
 module.exports = AdminModels

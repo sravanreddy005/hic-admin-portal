@@ -381,8 +381,14 @@ module.exports.getAdminsList = async (req, res, next) => {
  * fetching the admins list count
  */
 module.exports.getUsersCount = async (req, res, next) => {
-    try {        
-        const count = await getRecordsCount('Admin');
+    try {  
+        let whereData = {};      
+        if(req.body.branch_id){
+            whereData.branch_id = req.body.branch_id;
+        }else if (req.tokenData.role_type != 'Super-Admin'){
+            whereData.branch_id = req.tokenData.branch_id;
+        }
+        const count = await getRecordsCount('Admin', whereData);
         res.status(200).json({responseCode: 1, message: "success", count: count});        
     }catch (err) {
         winston.info({ 'AdminController:: Exception occured in getUsersCount method': err.message });

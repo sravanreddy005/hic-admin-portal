@@ -184,6 +184,11 @@ module.exports.getStockRequests = async (req, res, next) => {
             status: 'PENDING',
             created_at: {[Op.between]: [startedDate, futureDate]}
         }
+        if(req.body.branch_id){
+            whereData1.branch_id = req.body.branch_id;
+        }else if (req.tokenData.role_type != 'Super-Admin'){
+            whereData1.branch_id = req.tokenData.branch_id;
+        }
         let pendingStockCount = await getStockModelRecordsCount('StockRequests', whereData1);
         return res.status(200).json({responseCode: 1, message: "success", countData: {pendingStockCount}});      
     }catch (err) {

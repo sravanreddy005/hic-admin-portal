@@ -88,6 +88,55 @@ class PricesService {
         });
     }
 
+    getPricesModelRecordsWithJoinFromDB(tableName, whereData = '', includeData, attributes = '') {
+        return new Promise(async (resolve, reject) => {
+            try {
+                let data = await PricesModels[tableName].findAll({
+                    attributes: attributes,
+                    where: whereData,
+                    include: includeData,
+                });
+                resolve(data);
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
+    getPricesModelRecordsWithJoinFromDBCustom(tableName, whereData = '', includeData, attributes = '') {
+        return new Promise(async (resolve, reject) => {
+            try {
+                let data = await PricesModels[tableName].findAll({
+                    attributes: attributes,
+                    where: {
+                        [Op.and]: [
+                            {weight_from: {[Op.lte]: 2}},
+                            {weight_to: {[Op.gte]: 2}}                            
+                        ], 
+                        [Op.or]: [
+                            {
+                                [Op.and]: [
+                                    { 'zone': '1' },
+                                    { 'carrier_id': 13 }
+                                ]
+                            },
+                            {
+                                [Op.and]: [
+                                    { 'zone': '1' },
+                                    { 'carrier_id': 12 }
+                                ]
+                            },
+                        ]                       
+                    },
+                    include: includeData,
+                });
+                resolve(data);
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
     getOnePricesModelRecordFromDB(tableName, whereData) {
         return new Promise(async (resolve, reject) => {
             try {
