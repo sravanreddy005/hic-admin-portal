@@ -388,8 +388,10 @@ module.exports.getUsersCount = async (req, res, next) => {
         }else if (req.tokenData.role_type != 'Super-Admin'){
             whereData.branch_id = req.tokenData.branch_id;
         }
-        const count = await getRecordsCount('Admin', whereData);
-        res.status(200).json({responseCode: 1, message: "success", count: count});        
+        const totalCount = await getRecordsCount('Admin', whereData);
+        whereData.active = true;
+        const activeCount = await getRecordsCount('Admin', whereData);
+        res.status(200).json({responseCode: 1, message: "success", count: {totalUsers: totalCount, activeUsers: activeCount}});        
     }catch (err) {
         winston.info({ 'AdminController:: Exception occured in getUsersCount method': err.message });
         return next(err);
@@ -1059,6 +1061,7 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
             let dataArray = [];
             let filePath = `./server/uploads/commodity-list/${req.files['commodity_file'][0]['filename']}`;
             const fileData = await parseExcel(filePath);
+            console.log('fileData', fileData);
             fileData.map(data => {
                 if(data.ProductName && data.HSNCode){
                     const reqData = {
@@ -1081,7 +1084,11 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
         }                
     }catch (err) {
         winston.info({ 'AdminController:: Exception occured in uploadCommodities method': err.message });
-        return next(err);
+        if (err.name == 'SequelizeUniqueConstraintError'){
+            res.status(409).json({responseCode: 0, errorCode: 'iw1005', message : "Some of commodities already exists with this name"});
+        }else{
+            return next(err);
+        }
     }
 }
 
@@ -1640,8 +1647,9 @@ module.exports.deleteBranchCommission= async (req, res, next) => {
  */
  module.exports.getComplaintsCount = async (req, res, next) => {
     try {
+        let daysDuration = req.body && req.body.days_duration ? req.body.days_duration : 90;
         let now = new Date();
-        const backDate = new Date(now.setDate(now.getDate() - 30));
+        const backDate = new Date(now.setDate(now.getDate() - daysDuration));
         let date = backDate.toISOString().split('T');
         let toDate = new Date().toISOString().split('T')[0];
         let startedDate = new Date(date);            

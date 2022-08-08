@@ -351,8 +351,9 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
  */
  module.exports.getShipmentsCount = async (req, res, next) => {
     try {
+        let daysDuration = req.body && req.body.days_duration ? req.body.days_duration : 90;
         let now = new Date();
-        const backDate = new Date(now.setDate(now.getDate() - 30));
+        const backDate = new Date(now.setDate(now.getDate() - daysDuration));
         let date = backDate.toISOString().split('T');
         let toDate = new Date().toISOString().split('T')[0];
         let startedDate = new Date(date);            
@@ -380,10 +381,7 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
         }else if (req.tokenData.role_type != 'Super-Admin'){
             whereData2.branch_id = req.tokenData.branch_id;
         }
-        console.log('whereData2', whereData2);
         let shipmentsWithTrackingNoCount = await getShipmentsModelRecordsCount('Shipments', whereData2);
-        console.log('shipmentsWithoutTrackingNoCount', shipmentsWithoutTrackingNoCount);
-        console.log('shipmentsWithTrackingNoCount', shipmentsWithTrackingNoCount);
         return res.status(200).json({responseCode: 1, message: "success", countData: {shipmentsWithoutTrackingNoCount, shipmentsWithTrackingNoCount}});      
     }catch (err) {
         winston.info({ 'ShipmentsController:: Exception occured in getShipmentsCount method': err.message });
@@ -453,8 +451,13 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
  */
  module.exports.getShipmentDetails = async (req, res, next) => {
     try {
-        if(req.body.id){
-            let whereData = {id: req.body.id};
+        if(req.body.id || req.body.invoice_no){
+            let whereData = {};
+            if(req.body.id){
+                whereData = {id: req.body.id};
+            }else if(req.body.invoice_no){
+                whereData = {invoice_number: req.body.invoice_no};
+            }
             let resp = await getOneShipmentsModelRecordFromDB('Shipments', whereData);
             return res.status(200).json({responseCode: 1, message: "success", info: resp});  
         }else{

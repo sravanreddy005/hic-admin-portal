@@ -172,8 +172,9 @@ module.exports.getStockRequests = async (req, res, next) => {
  */
  module.exports.getStockRequestsCount = async (req, res, next) => {
     try {
+        let daysDuration = req.body && req.body.days_duration ? req.body.days_duration : 90;
         let now = new Date();
-        const backDate = new Date(now.setDate(now.getDate() - 30));
+        const backDate = new Date(now.setDate(now.getDate() - daysDuration));
         let date = backDate.toISOString().split('T');
         let toDate = new Date().toISOString().split('T')[0];
         let startedDate = new Date(date);            

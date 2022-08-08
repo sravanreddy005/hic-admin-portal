@@ -343,7 +343,7 @@ module.exports.parseExcel = (filePath, unlinkFile = true) => {
         let data = [];
         const sheets = file.SheetNames;        
         for(let i = 0; i < sheets.length; i++){
-            const temp = xlsx.utils.sheet_to_json(file.Sheets[file.SheetNames[i]])
+            const temp = xlsx.utils.sheet_to_json(file.Sheets[file.SheetNames[i]], {raw: false});
             temp.forEach((res) => {
                 data.push(res);
             });

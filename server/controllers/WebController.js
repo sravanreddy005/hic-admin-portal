@@ -211,7 +211,7 @@ const dateOptions = { weekday: 'short', year: 'numeric', month: 'long', day: 'nu
         ){
             let trackingID = (req.body.tracking_id).toString().toUpperCase();
             let courier = 'dhl';
-            let trackingResp = {};
+            let trackingResp = {courier: courier};
             if(trackingID.substring(0,2) === '1Z'){
                 courier = 'ups';
                 trackingResp = await this.upsTracking(trackingID);
