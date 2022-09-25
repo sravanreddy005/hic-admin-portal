@@ -42,7 +42,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// app.use(express.static(path.join(__dirname, 'dist')));
+app.use(express.static(path.join(__dirname, 'dist')));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/web', webRoutes);
