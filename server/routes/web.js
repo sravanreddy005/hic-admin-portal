@@ -12,6 +12,7 @@ router.post('/addPickupRequest', WebController.addPickupRequest);
 router.post('/getCountries', PricesController.getCountries);
 router.post('/getPrices', WebController.getPrices);
 router.post('/getTrackingInfo', WebController.getTrackingInfo);
+router.post('/getBranches', AdminController.getBranches);
 
 
 module.exports = router;

@@ -58,7 +58,9 @@ const {
             if(reqBody.mode_of_payment !== 'CASH' && !reqBody.transaction_id){
                 return res.status(400).json({responseCode: 0, errorCode: 'iw1003', message: "Bad request"});
             }
-            if(reqBody.shipment_type === 'C2C' && reqBody.total_amount > 24000){
+            let commodityList = JSON.parse(reqBody.commodity_list);
+            let commodityTotalValue = commodityList.reduce((n, {commodity_value}) => n + commodity_value, 0)
+            if(reqBody.shipment_type === 'C2C' && commodityTotalValue > 24000){
                 return res.status(200).json({responseCode: 0, message: "Commodity value should not exceed 24,000 for C2C shipment"});
             }
             if((reqBody.sender_id_proof_type).toUpperCase() === 'AADHAR' && !validateData('aadhar', reqBody.sender_id_proof_number)){
@@ -155,7 +157,7 @@ const {
         }                
     }catch (err) {
         if (err.name == 'SequelizeUniqueConstraintError'){
-            res.status(409).json({responseCode: 0, errorCode: 'iw1005', message : " Country already exists with this name/code"});
+            res.status(409).json({responseCode: 0, errorCode: 'iw1005', message : "Shipment already exists with this invoice number"});
         }else{
             winston.info({ 'ShipmentsController:: Exception occured in addShipment method': err.message });
             return next(err);
@@ -311,7 +313,7 @@ module.exports.updateShipmentDetails = async (req, res, next) => {
     }catch (err) {
         winston.info({ 'ShipmentsController:: Exception occured in updateShipmentDetails method': err.message });
         if (err.name == 'SequelizeUniqueConstraintError'){
-            res.status(409).json({responseCode: 0, errorCode: 'iw1005', message : " Shipment already exists with this invoice number"});
+            res.status(409).json({responseCode: 0, errorCode: 'iw1005', message : "Shipment already exists with this invoice number"});
         }else{           
             return next(err);
         }

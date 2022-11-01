@@ -217,7 +217,7 @@ module.exports.sendWhatsappMessage = (toMobileNo, template) => {
             let fromPhoneNoID = '100231582742912';
             let apiURL = `https://graph.facebook.com/v13.0/${fromPhoneNoID}/messages`;
             let headers = {
-                'Authorization': 'Bearer ',
+                'Authorization': 'Bearer EAANE47CvoO4BABW7YiCJaYaC3IUz0zYrFDNZAYGbyIcqyvm1iTzOlgznZBJDSPODAsWPRymEJENBvzZB4z0Ic9tZBWfaOLoXcfK5JgFYkZBuvbFWFxF7PHlY2YaIeU9YSitQcZCceW2ahd0oZB2AnYOrInEhhic88WkaHcEsA8OUPrx89Qx60b9ig6TfxNom52UaYtGleWYQAZDZD',
                 'Content-Type': 'application/json'
             };
             let data = {

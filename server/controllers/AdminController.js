@@ -730,8 +730,9 @@ module.exports.addBranch = async (req, res, next) => {
             reqData && 
             reqData.branch_type && 
             reqData.branch_type === 'Head Office' || reqData.branch_type === 'Franchise' || reqData.branch_type === 'Agent' && 
-            reqData.branch_name && 
-            validateData('alnumSpecial', reqData.branch_name) &&
+            reqData.branch_name && validateData('alnumSpecial', reqData.branch_name) &&
+            reqData.branch_email && validateData('email', reqData.branch_email) &&
+            reqData.branch_mobile_number && validateData('mobile', reqData.branch_mobile_number) &&
             reqData.address1 && 
             validateData('address', reqData.address1) && 
             reqData.address2 && 
@@ -746,12 +747,16 @@ module.exports.addBranch = async (req, res, next) => {
             let data = {
                 branch_type: reqData.branch_type,
                 branch_name: reqData.branch_name,
+                branch_email: reqData.branch_email,
+                branch_mobile_number: reqData.branch_mobile_number,
                 address1: reqData.address1,
                 address2: reqData.address2,
                 pincode: reqData.pincode,
                 city: reqData.city,
                 state: reqData.state,
                 google_map_link: reqData.google_map_link ? reqData.google_map_link : '',
+                show_in_website: reqData.show_in_website ? reqData.show_in_website : 'NO',
+                show_in_category: reqData.show_in_category,
                 active: 1
             }
             if(req.files && req.files['branch_photo'] && req.files['branch_photo'][0]['filename']){
@@ -809,10 +814,10 @@ module.exports.getBranches = async (req, res, next) => {
             reqData.id && 
             reqData.branch_type && 
             reqData.branch_type === 'Head Office' || reqData.branch_type === 'Franchise' || reqData.branch_type === 'Agent' && 
-            reqData.branch_name && 
-            validateData('alnumSpecial', reqData.branch_name) &&
-            reqData.address1 && 
-            validateData('address', reqData.address1) && 
+            reqData.branch_name && validateData('alnumSpecial', reqData.branch_name) &&
+            reqData.branch_email && validateData('email', reqData.branch_email) &&
+            reqData.branch_mobile_number && validateData('mobile', reqData.branch_mobile_number) &&
+            reqData.address1 && validateData('address', reqData.address1) && 
             reqData.address2 && 
             validateData('address', reqData.address2) && 
             reqData.pincode && 
@@ -825,13 +830,18 @@ module.exports.getBranches = async (req, res, next) => {
             let data = {
                 branch_type: reqData.branch_type,
                 branch_name: reqData.branch_name,
+                branch_email: reqData.branch_email,
+                branch_mobile_number: reqData.branch_mobile_number,
                 address1: reqData.address1,
                 address2: reqData.address2,
                 pincode: reqData.pincode,
                 city: reqData.city,
                 state: reqData.state,
                 google_map_link: reqData.google_map_link ? reqData.google_map_link : '',
+                show_in_website: reqData.show_in_website ? reqData.show_in_website : 'NO',
+                show_in_category: reqData.show_in_category,
             }
+            console.log('data', data);
             if(req.files && req.files['branch_photo'] && req.files['branch_photo'][0]['filename']){
                 data.photo = req.files['branch_photo'][0]['filename'];
             }

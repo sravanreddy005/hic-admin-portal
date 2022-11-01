@@ -105,6 +105,12 @@ AdminModels.Branches = sequelize.define('branches', {
     type: Sequelize.STRING,
     unique: true
   },
+  branch_email: {
+    type: Sequelize.STRING,
+  },
+  branch_mobile_number: {
+    type: Sequelize.STRING,
+  },
   address1: {
     type: Sequelize.TEXT
   },
@@ -125,6 +131,12 @@ AdminModels.Branches = sequelize.define('branches', {
   },
   photo: {
     type: Sequelize.TEXT,
+  },
+  show_in_website: {
+    type: Sequelize.STRING,
+  },
+  show_in_category: {
+    type: Sequelize.STRING,
   },
   active: {
     type: Sequelize.BOOLEAN,
@@ -150,6 +162,12 @@ AdminModels.Branches = sequelize.define('branches', {
       },
       {
         fields: ['state']
+      },
+      {
+        fields: ['show_in_website']
+      },
+      {
+        fields: ['show_in_category']
       },
       {
         fields: ['active']
