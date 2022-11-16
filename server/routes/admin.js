@@ -74,7 +74,7 @@ router.post('/getBranchesCount', jwt.verifyAdminJwtToken, AdminController.getBra
 router.post('/addBranch', jwt.verifyAdminJwtTokenWithAccess('branches', 'edit'), uploadImages.fields([{name: 'branch_photo', maxCount: 1}]), AdminController.addBranch);
 router.post('/updateBranch', jwt.verifyAdminJwtTokenWithAccess('branches', 'edit'), uploadImages.fields([{name: 'branch_photo', maxCount: 1}]), AdminController.updateBranch);
 router.post('/updateBranchStatus', jwt.verifyAdminJwtTokenWithAccess('branches', 'edit'), AdminController.updateBranchStatus);
-router.post('/deleteBranch', jwt.verifyAdminJwtTokenWithAccess('branches', 'delete'), AdminController.deleteBranch);
+// router.post('/deleteBranch', jwt.verifyAdminJwtTokenWithAccess('branches', 'delete'), AdminController.deleteBranch);
 
 //Manage Branch Commissions
 router.post('/getBranchCommissions', jwt.verifyAdminJwtToken, AdminController.getBranchCommissions);

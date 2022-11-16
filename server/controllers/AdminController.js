@@ -772,8 +772,13 @@ module.exports.addBranch = async (req, res, next) => {
             res.status(400).json({responseCode: 0, errorCode: 'iw1003', message : "Bad Request"});
         }    
     }catch (err) {
-        winston.info({ 'AdminController:: Exception occured in addBranch method': err.message });
-        return next(err);
+        if (err.name == 'SequelizeUniqueConstraintError'){
+            return res.status(409).json({responseCode: 0, errorCode: 'iw1005', message : "Branch already exists with this name"});
+        }else{
+            winston.info({ 'AdminController:: Exception occured in addBranch method': err.message });
+            return next(err);
+        }
+        
     }
 }
 
@@ -1805,7 +1810,8 @@ module.exports.generateInvoicePDF = async (req, res, next) => {
         let boxDimentions = [];
         boxesDetails.map(data => {
             boxDimentions.push(`${data.width}*${data.length}*${data.height}`);
-        });        
+        }); 
+        let totalCommodityValue = await getSumByKey(commodityList, 'commodity_value');       
         let data = {
             ...shipmentData,
             date : await formatDate(shipmentData.date, 'dd-mm-yyyy'),
@@ -1815,8 +1821,8 @@ module.exports.generateInvoicePDF = async (req, res, next) => {
             commodities: commodityList,
             total_commodities_quantity: await getSumByKey(commodityList, 'quantity'),
             total_commodities_unitprice: await getSumByKey(commodityList, 'unit_price'),
-            total_commodity_value: await getSumByKey(commodityList, 'commodity_value'),
-            amount_in_words: await amountInwords(2000)
+            total_commodity_value: totalCommodityValue,
+            amount_in_words: await amountInwords(totalCommodityValue)
         };
         // Convert to Handlebars template and add the data
         const template = handlebars.compile(source);

@@ -49,7 +49,7 @@ app.use('/api/web', webRoutes);
 app.use('/api', adminRoutes);
 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist/index.html'));
+    res.sendFile(path.join(__dirname, 'dist/index.html'));
 });
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

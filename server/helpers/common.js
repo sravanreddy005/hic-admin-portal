@@ -217,7 +217,7 @@ module.exports.sendWhatsappMessage = (toMobileNo, template) => {
             let fromPhoneNoID = '100231582742912';
             let apiURL = `https://graph.facebook.com/v13.0/${fromPhoneNoID}/messages`;
             let headers = {
-                'Authorization': 'Bearer EAANE47CvoO4BABW7YiCJaYaC3IUz0zYrFDNZAYGbyIcqyvm1iTzOlgznZBJDSPODAsWPRymEJENBvzZB4z0Ic9tZBWfaOLoXcfK5JgFYkZBuvbFWFxF7PHlY2YaIeU9YSitQcZCceW2ahd0oZB2AnYOrInEhhic88WkaHcEsA8OUPrx89Qx60b9ig6TfxNom52UaYtGleWYQAZDZD',
+                'Authorization': 'Bearer ',
                 'Content-Type': 'application/json'
             };
             let data = {
@@ -234,7 +234,7 @@ module.exports.sendWhatsappMessage = (toMobileNo, template) => {
                 resolve(null);
             }
         } catch (error) {
-            
+            console.log('sendWhatsappMessage error', error);
         }        
     });
 };
@@ -287,7 +287,7 @@ module.exports.amountInwords = (amount) => {
       str += (n[2] != 0) ? (a[Number(n[2])] || b[n[2][0]] + ' ' + a[n[2][1]]) + 'lakh ' : '';
       str += (n[3] != 0) ? (a[Number(n[3])] || b[n[3][0]] + ' ' + a[n[3][1]]) + 'thousand ' : '';
       str += (n[4] != 0) ? (a[Number(n[4])] || b[n[4][0]] + ' ' + a[n[4][1]]) + 'hundred ' : '';
-      str += (n[5] != 0) ? ((str != '') ? 'and ' : '') + (a[Number(n[5])] || b[n[5][0]] + ' ' + a[n[5][1]]) + 'only' : '';
+      str += (n[5] != 0) ? ((str != '') ? 'and ' : '') + (a[Number(n[5])] || b[n[5][0]] + ' ' + a[n[5][1]]) : '';
       resolve((str.charAt(0).toUpperCase() + str.slice(1)).toUpperCase() + ' ONLY');
     });
   }
