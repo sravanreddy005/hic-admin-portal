@@ -217,7 +217,7 @@ module.exports.sendWhatsappMessage = (toMobileNo, template) => {
             let fromPhoneNoID = '100231582742912';
             let apiURL = `https://graph.facebook.com/v13.0/${fromPhoneNoID}/messages`;
             let headers = {
-                'Authorization': 'Bearer ',
+                'Authorization': 'Bearer',
                 'Content-Type': 'application/json'
             };
             let data = {
